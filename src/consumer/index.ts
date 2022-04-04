@@ -1,7 +1,7 @@
 import { Container } from "brandi";
 import {
-    ExportServiceKafkaConsumer,
-    EXPORT_SERVICE_KAFKA_CONSUMER_TOKEN,
+    ModelServiceKafkaConsumer,
+    MODEL_SERVICE_KAFKA_CONSUMER_TOKEN,
 } from "./consumer";
 import {
     DetectionTaskCreatedMessageHandlerImpl,
@@ -16,7 +16,7 @@ export function bindToContainer(container: Container): void {
         .toInstance(DetectionTaskCreatedMessageHandlerImpl)
         .inSingletonScope();
     container
-        .bind(EXPORT_SERVICE_KAFKA_CONSUMER_TOKEN)
-        .toInstance(ExportServiceKafkaConsumer)
+        .bind(MODEL_SERVICE_KAFKA_CONSUMER_TOKEN)
+        .toInstance(ModelServiceKafkaConsumer)
         .inSingletonScope();
 }

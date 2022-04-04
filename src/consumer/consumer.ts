@@ -14,7 +14,7 @@ import {
 const TopicNameModelServiceDetectionTaskCreated =
     "model_service_detection_task_created";
 
-export class ExportServiceKafkaConsumer {
+export class ModelServiceKafkaConsumer {
     constructor(
         private readonly messageConsumer: MessageConsumer,
         private readonly detectionTaskCreatedMessageHandler: DetectionTaskCreatedMessageHandler,
@@ -53,12 +53,12 @@ export class ExportServiceKafkaConsumer {
 }
 
 injected(
-    ExportServiceKafkaConsumer,
+    ModelServiceKafkaConsumer,
     MESSAGE_CONSUMER_TOKEN,
     DETECTION_TASK_CREATED_MESSAGE_HANDLER_TOKEN,
     BINARY_CONVERTER_TOKEN,
     LOGGER_TOKEN
 );
 
-export const EXPORT_SERVICE_KAFKA_CONSUMER_TOKEN =
-    token<ExportServiceKafkaConsumer>("ExportServiceKafkaConsumer");
+export const MODEL_SERVICE_KAFKA_CONSUMER_TOKEN =
+    token<ModelServiceKafkaConsumer>("ModelServiceKafkaConsumer");
