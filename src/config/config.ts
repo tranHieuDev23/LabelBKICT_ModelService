@@ -9,7 +9,7 @@ import { KafkaConfig } from "./kafka";
 import { LogConfig } from "./log";
 import { PolypDetectionServiceConfig } from "./polyp_detect_service";
 
-export class ExportServiceConfig {
+export class ModelServiceConfig {
     public logConfig = new LogConfig();
     public databaseConfig = new DatabaseConfig();
     public kafkaConfig = new KafkaConfig();
@@ -21,8 +21,8 @@ export class ExportServiceConfig {
     public distributedConfig = new DistributedConfig();
     public applicationConfig = new ApplicationConfig();
 
-    public static fromEnv(): ExportServiceConfig {
-        const config = new ExportServiceConfig();
+    public static fromEnv(): ModelServiceConfig {
+        const config = new ModelServiceConfig();
         config.logConfig = LogConfig.fromEnv();
         config.databaseConfig = DatabaseConfig.fromEnv();
         config.kafkaConfig = KafkaConfig.fromEnv();
@@ -38,6 +38,5 @@ export class ExportServiceConfig {
     }
 }
 
-export const EXPORT_SERVICE_CONFIG_TOKEN = token<ExportServiceConfig>(
-    "ExportServiceConfig"
-);
+export const MODEL_SERVICE_CONFIG_TOKEN =
+    token<ModelServiceConfig>("ModelServiceConfig");

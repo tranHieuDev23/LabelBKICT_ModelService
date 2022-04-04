@@ -1,6 +1,6 @@
 import { Container } from "brandi";
 import { APPLICATION_CONFIG_TOKEN } from "./application";
-import { ExportServiceConfig, EXPORT_SERVICE_CONFIG_TOKEN } from "./config";
+import { ModelServiceConfig, MODEL_SERVICE_CONFIG_TOKEN } from "./config";
 import { DATABASE_CONFIG_TOKEN } from "./database";
 import { DISTRIBUTED_CONFIG_TOKEN } from "./distributed";
 import { ESOPHAGUS_DETECTION_SERVICE_CONFIG_TOKEN } from "./esophagus_detect_service";
@@ -23,36 +23,34 @@ export * from "./config";
 
 export function bindToContainer(container: Container): void {
     container
-        .bind(EXPORT_SERVICE_CONFIG_TOKEN)
-        .toInstance(ExportServiceConfig.fromEnv)
+        .bind(MODEL_SERVICE_CONFIG_TOKEN)
+        .toInstance(ModelServiceConfig.fromEnv)
         .inSingletonScope();
     container
         .bind(LOG_CONFIG_TOKEN)
-        .toInstance(() => container.get(EXPORT_SERVICE_CONFIG_TOKEN).logConfig)
+        .toInstance(() => container.get(MODEL_SERVICE_CONFIG_TOKEN).logConfig)
         .inSingletonScope();
     container
         .bind(DATABASE_CONFIG_TOKEN)
         .toInstance(
-            () => container.get(EXPORT_SERVICE_CONFIG_TOKEN).databaseConfig
+            () => container.get(MODEL_SERVICE_CONFIG_TOKEN).databaseConfig
         )
         .inSingletonScope();
     container
         .bind(KAFKA_CONFIG_TOKEN)
-        .toInstance(
-            () => container.get(EXPORT_SERVICE_CONFIG_TOKEN).kafkaConfig
-        )
+        .toInstance(() => container.get(MODEL_SERVICE_CONFIG_TOKEN).kafkaConfig)
         .inSingletonScope();
     container
         .bind(IMAGE_SERVICE_CONFIG_TOKEN)
         .toInstance(
-            () => container.get(EXPORT_SERVICE_CONFIG_TOKEN).imageServiceConfig
+            () => container.get(MODEL_SERVICE_CONFIG_TOKEN).imageServiceConfig
         )
         .inSingletonScope();
     container
         .bind(POLYP_DETECTION_SERVICE_CONFIG_TOKEN)
         .toInstance(
             () =>
-                container.get(EXPORT_SERVICE_CONFIG_TOKEN)
+                container.get(MODEL_SERVICE_CONFIG_TOKEN)
                     .polypDetectionServiceConfig
         )
         .inSingletonScope();
@@ -60,26 +58,26 @@ export function bindToContainer(container: Container): void {
         .bind(ESOPHAGUS_DETECTION_SERVICE_CONFIG_TOKEN)
         .toInstance(
             () =>
-                container.get(EXPORT_SERVICE_CONFIG_TOKEN)
+                container.get(MODEL_SERVICE_CONFIG_TOKEN)
                     .esophagusDetectionServiceConfig
         )
         .inSingletonScope();
     container
         .bind(GRPC_SERVER_CONFIG)
         .toInstance(
-            () => container.get(EXPORT_SERVICE_CONFIG_TOKEN).grpcServerConfig
+            () => container.get(MODEL_SERVICE_CONFIG_TOKEN).grpcServerConfig
         )
         .inSingletonScope();
     container
         .bind(DISTRIBUTED_CONFIG_TOKEN)
         .toInstance(
-            () => container.get(EXPORT_SERVICE_CONFIG_TOKEN).distributedConfig
+            () => container.get(MODEL_SERVICE_CONFIG_TOKEN).distributedConfig
         )
         .inSingletonScope();
     container
         .bind(APPLICATION_CONFIG_TOKEN)
         .toInstance(
-            () => container.get(EXPORT_SERVICE_CONFIG_TOKEN).applicationConfig
+            () => container.get(MODEL_SERVICE_CONFIG_TOKEN).applicationConfig
         )
         .inSingletonScope();
 }
