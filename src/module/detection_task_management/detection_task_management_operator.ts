@@ -1,14 +1,17 @@
+import { status } from "@grpc/grpc-js";
 import { injected, token } from "brandi";
 import { Logger } from "winston";
 import {
     DetectionTaskDataAccessor,
+    DetectionTaskStatus,
     DETECTION_TASK_DATA_ACCESSOR_TOKEN,
 } from "../../dataaccess/db";
 import {
+    DetectionTaskCreated,
     DetectionTaskCreatedProducer,
     DETECTION_TASK_CREATED_PRODUCER_TOKEN,
 } from "../../dataaccess/kafka";
-import { LOGGER_TOKEN, Timer, TIMER_TOKEN } from "../../utils";
+import { ErrorWithStatus, LOGGER_TOKEN, Timer, TIMER_TOKEN } from "../../utils";
 
 export interface DetectionTaskManagementOperator {
     createDetectionTask(imageId: number): Promise<void>;
@@ -25,7 +28,31 @@ export class DetectionTaskManagementOperatorImpl
     ) {}
 
     public async createDetectionTask(imageId: number): Promise<void> {
-        throw new Error("Method not implemented.");
+        const requestTime = this.timer.getCurrentTime();
+        const requestedTaskCount =
+            await this.detectionTaskDM.getRequestedDetectionTaskCountOfImageId(
+                imageId
+            );
+        if (requestedTaskCount > 0) {
+            this.logger.error(
+                "there are existing requested detection task for image",
+                { imageId }
+            );
+            throw new ErrorWithStatus(
+                `there are existing requested detection task for image with image_id ${imageId}`,
+                status.ALREADY_EXISTS
+            );
+        }
+        await this.detectionTaskDM.withTransaction(async (detectionTaskDM) => {
+            const taskID = await detectionTaskDM.createDetectionTask(
+                imageId,
+                requestTime,
+                DetectionTaskStatus.REQUESTED
+            );
+            await this.detectionTaskCreatedProducer.createDetectionTaskCreatedMessage(
+                new DetectionTaskCreated(taskID)
+            );
+        });
     }
 }
 
