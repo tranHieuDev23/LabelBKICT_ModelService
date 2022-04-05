@@ -26,6 +26,7 @@ export class ModelServiceHandlersFactory {
                     await this.detectionTaskManagementOperator.createDetectionTask(
                         req.imageId
                     );
+                    callback(null, {});
                 } catch (e) {
                     this.handleError(e, callback);
                 }
