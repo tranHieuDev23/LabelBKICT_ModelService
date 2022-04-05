@@ -10,14 +10,20 @@ import {
     DetectionTaskCreatedMessageHandler,
     DETECTION_TASK_CREATED_MESSAGE_HANDLER_TOKEN,
 } from "./detection_task_created";
+import {
+    ImageCreatedMessageHandler,
+    IMAGE_CREATED_MESSAGE_HANDLER_TOKEN,
+} from "./image_created";
 
 const TopicNameModelServiceDetectionTaskCreated =
     "model_service_detection_task_created";
+const TopicNameImageServiceImageCreated = "image_service_image_created";
 
 export class ModelServiceKafkaConsumer {
     constructor(
         private readonly messageConsumer: MessageConsumer,
         private readonly detectionTaskCreatedMessageHandler: DetectionTaskCreatedMessageHandler,
+        private readonly imageCreatedMessageHandler: ImageCreatedMessageHandler,
         private readonly binaryConverter: BinaryConverter,
         private readonly logger: Logger
     ) {}
@@ -29,6 +35,10 @@ export class ModelServiceKafkaConsumer {
                     topic: TopicNameModelServiceDetectionTaskCreated,
                     onMessage: (message) =>
                         this.onDetectionTaskCreated(message),
+                },
+                {
+                    topic: TopicNameImageServiceImageCreated,
+                    onMessage: (message) => this.onImageCreated(message),
                 },
             ])
             .then(() => {
@@ -45,9 +55,21 @@ export class ModelServiceKafkaConsumer {
             this.logger.error("null message, skipping");
             return;
         }
-        const exportCreatedMessage = this.binaryConverter.fromBuffer(message);
+        const detectionTaskCreatedMessage =
+            this.binaryConverter.fromBuffer(message);
         await this.detectionTaskCreatedMessageHandler.onDetectionTaskCreated(
-            exportCreatedMessage
+            detectionTaskCreatedMessage
+        );
+    }
+
+    private async onImageCreated(message: Buffer | null): Promise<void> {
+        if (message === null) {
+            this.logger.error("null message, skipping");
+            return;
+        }
+        const imageCreatedMessage = this.binaryConverter.fromBuffer(message);
+        await this.imageCreatedMessageHandler.onImageCreated(
+            imageCreatedMessage
         );
     }
 }
@@ -56,6 +78,7 @@ injected(
     ModelServiceKafkaConsumer,
     MESSAGE_CONSUMER_TOKEN,
     DETECTION_TASK_CREATED_MESSAGE_HANDLER_TOKEN,
+    IMAGE_CREATED_MESSAGE_HANDLER_TOKEN,
     BINARY_CONVERTER_TOKEN,
     LOGGER_TOKEN
 );
