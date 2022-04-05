@@ -117,8 +117,7 @@ export class DetectionTaskDataAccessorImpl
                     ColNameModelServiceDetectionTaskStatus,
                     "=",
                     DetectionTaskStatus.REQUESTED
-                )
-                .forUpdate();
+                );
             return +(rows[0] as any)["count"];
         } catch (error) {
             this.logger.error(

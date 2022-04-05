@@ -90,8 +90,10 @@ export class DetectOperatorImpl implements DetectOperator {
             this.imageServiceDM.createRegion.bind(this.imageServiceDM),
             {
                 ofImageId: imageId,
+                drawnByUserId: 0,
                 border: border,
                 holes: [],
+                labeledByUserId: 0,
             }
         );
 

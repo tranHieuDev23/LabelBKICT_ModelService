@@ -13,7 +13,7 @@ export class ApplicationConfig {
                 ).map((item) => +item);
         }
         if (process.env.MODEL_SERVICE_IMAGE_TYPE_ID_LIST_FOR_ESOPHAGUS) {
-            config.imageTypeIdListForPolypDetectionService =
+            config.imageTypeIdListForEsophagusDetectionService =
                 process.env.MODEL_SERVICE_IMAGE_TYPE_ID_LIST_FOR_ESOPHAGUS.split(
                     ","
                 ).map((item) => +item);
