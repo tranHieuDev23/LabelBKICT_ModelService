@@ -8,6 +8,7 @@ import { ImageServiceConfig } from "./image_service";
 import { KafkaConfig } from "./kafka";
 import { LogConfig } from "./log";
 import { PolypDetectionServiceConfig } from "./polyp_detect_service";
+import { DirtyDetectionServiceConfig } from "./dirty_detect_service"
 
 export class ModelServiceConfig {
     public logConfig = new LogConfig();
@@ -17,6 +18,7 @@ export class ModelServiceConfig {
     public polypDetectionServiceConfig = new PolypDetectionServiceConfig();
     public esophagusDetectionServiceConfig =
         new EsophagusDetectionServiceConfig();
+    public dirtyDetectionServiceConfig = new DirtyDetectionServiceConfig();
     public grpcServerConfig = new GRPCServerConfig();
     public distributedConfig = new DistributedConfig();
     public applicationConfig = new ApplicationConfig();
@@ -31,6 +33,8 @@ export class ModelServiceConfig {
             PolypDetectionServiceConfig.fromEnv();
         config.esophagusDetectionServiceConfig =
             EsophagusDetectionServiceConfig.fromEnv();
+        config.dirtyDetectionServiceConfig =
+            DirtyDetectionServiceConfig.fromEnv();
         config.grpcServerConfig = GRPCServerConfig.fromEnv();
         config.distributedConfig = DistributedConfig.fromEnv();
         config.applicationConfig = ApplicationConfig.fromEnv();

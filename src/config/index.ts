@@ -9,6 +9,7 @@ import { IMAGE_SERVICE_CONFIG_TOKEN } from "./image_service";
 import { KAFKA_CONFIG_TOKEN } from "./kafka";
 import { LOG_CONFIG_TOKEN } from "./log";
 import { POLYP_DETECTION_SERVICE_CONFIG_TOKEN } from "./polyp_detect_service";
+import { DIRTY_DETECTION_SERVICE_CONFIG_TOKEN } from "./dirty_detect_service";
 
 export * from "./log";
 export * from "./database";
@@ -20,6 +21,7 @@ export * from "./grpc_service";
 export * from "./application";
 export * from "./distributed";
 export * from "./config";
+export * from "./dirty_detect_service"
 
 export function bindToContainer(container: Container): void {
     container
@@ -60,6 +62,14 @@ export function bindToContainer(container: Container): void {
             () =>
                 container.get(MODEL_SERVICE_CONFIG_TOKEN)
                     .esophagusDetectionServiceConfig
+        )
+        .inSingletonScope();
+    container
+        .bind(DIRTY_DETECTION_SERVICE_CONFIG_TOKEN)
+        .toInstance(
+            () =>
+                container.get(MODEL_SERVICE_CONFIG_TOKEN)
+                    .dirtyDetectionServiceConfig
         )
         .inSingletonScope();
     container
