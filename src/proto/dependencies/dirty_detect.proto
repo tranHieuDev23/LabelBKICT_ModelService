@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package dirty.proto;
+
+message Image {
+    bytes content = 1;
+}
+
+message DirtyDetectionRequest {
+    Image image = 1;
+}
+
+message DirtyDetectionResponse {
+    bool is_dirty = 1;
+}
+
+service DirtyDetectionService {
+    rpc DirtyDetect(DirtyDetectionRequest) returns (DirtyDetectionResponse) {};
+}
