@@ -8,10 +8,15 @@ import {
     getPolypDetectionServiceDM,
     POLYP_DETECTION_SERVICE_DM_TOKEN,
 } from "./polyp_detection_service";
+import {
+    getDirtyDetectionServiceDM,
+    DIRTY_DETECTION_SERVICE_DM_TOKEN,
+} from "./dirty_detection_service";
 
 export * from "./image_service";
 export * from "./polyp_detection_service";
 export * from "./esophagus_detection_service";
+export * from "./dirty_detection_service"
 
 export function bindToContainer(container: Container): void {
     container
@@ -26,4 +31,8 @@ export function bindToContainer(container: Container): void {
         .bind(ESOPHAGUS_DETECTION_SERVICE_DM_TOKEN)
         .toInstance(getEsophagusDetectionServiceDM)
         .inSingletonScope();
+    container
+        .bind(DIRTY_DETECTION_SERVICE_DM_TOKEN)
+        .toInstance(getDirtyDetectionServiceDM)
+        .inSingletonScope();    
 }
