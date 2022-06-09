@@ -50,6 +50,14 @@ export class DetectOperatorImpl implements DetectOperator {
 
             const imageId = detectionTask.ofImageId;
             const image = await this.getImage(imageId);
+            if (image === null) {
+                this.logger.error(
+                    "no image with detection task found",
+                    { detectionTaskId }
+                );
+                return null;
+            }
+
             const regionList =
                 await this.polypDetector.detectRegionListFromImage(image);
             await Promise.all(
@@ -63,7 +71,7 @@ export class DetectOperatorImpl implements DetectOperator {
         });
     }
 
-    private async getImage(imageId: number): Promise<Image> {
+    private async getImage(imageId: number): Promise<Image|null> {
         const { error: getImageError, response: getImageResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.getImage.bind(this.imageServiceDM),
@@ -73,7 +81,7 @@ export class DetectOperatorImpl implements DetectOperator {
             this.logger.error("failed to call image_service.getImage()", {
                 error: getImageError,
             });
-            throw getImageError;
+            return null;
         }
         if (getImageResponse?.image === undefined) {
             this.logger.error("invalid response from image_service.getImage()");
