@@ -32,7 +32,8 @@ export class ImageCreatedMessageHandlerImpl
             this.logger.error("image_id is required", { payload: message });
             return;
         }
-        await this.detectionTaskManagementOperator.createDetectionTask(imageId);
+        const imageIdList: number[] = [imageId];
+        await this.detectionTaskManagementOperator.createDetectionTask(imageIdList);
     }
 }
 

@@ -11,7 +11,7 @@ import {
 import { KAFKA_PRODUCER_TOKEN } from "./producer";
 
 export class DetectionTaskCreated {
-    constructor(public detectionTaskId: number) {}
+    constructor(public detectionTaskIdList: number[]) {}
 }
 
 export interface DetectionTaskCreatedProducer {

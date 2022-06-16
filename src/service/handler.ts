@@ -18,10 +18,11 @@ export class ModelServiceHandlersFactory {
                 const req = call.request;
                 if (req.imageId === undefined) {
                     return callback({
-                        message: "image_id is required",
+                        message: "image_id_list is required",
                         code: status.INVALID_ARGUMENT,
                     });
                 }
+
                 try {
                     await this.detectionTaskManagementOperator.createDetectionTask(
                         req.imageId
