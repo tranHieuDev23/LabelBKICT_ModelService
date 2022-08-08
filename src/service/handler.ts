@@ -18,7 +18,7 @@ export class ModelServiceHandlersFactory {
                 const req = call.request;
                 if (req.imageId === undefined) {
                     return callback({
-                        message: "image_id_list is required",
+                        message: "image_id is required",
                         code: status.INVALID_ARGUMENT,
                     });
                 }
@@ -26,6 +26,25 @@ export class ModelServiceHandlersFactory {
                 try {
                     await this.detectionTaskManagementOperator.createDetectionTask(
                         req.imageId
+                    );
+                    callback(null, {});
+                } catch (e) {
+                    this.handleError(e, callback);
+                }
+            },
+
+            CreateDetectionTaskBatch: async (call, callback) => {
+                const req = call.request;
+                if (req.imageIdList === undefined) {
+                    return callback({
+                        message: "image_id_list is required",
+                        code: status.INVALID_ARGUMENT,
+                    });
+                }
+
+                try {
+                    await this.detectionTaskManagementOperator.createDetectionTaskBatch(
+                        req.imageIdList
                     );
                     callback(null, {});
                 } catch (e) {

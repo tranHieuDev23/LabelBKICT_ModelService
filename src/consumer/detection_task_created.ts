@@ -23,9 +23,7 @@ export class DetectionTaskCreatedMessageHandlerImpl
             "model_service_detection_task_created message received",
             { payload: message }
         );
-        for (let detectionTaskId of message.detectionTaskIdList) {
-            await this.detectOperator.processDetectionTask(detectionTaskId);
-        }
+        await this.detectOperator.processDetectionTask(message.detectionTaskId);
     }
 }
 

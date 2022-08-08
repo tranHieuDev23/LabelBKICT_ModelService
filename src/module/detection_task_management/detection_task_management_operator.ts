@@ -14,7 +14,8 @@ import {
 import { ErrorWithStatus, LOGGER_TOKEN, Timer, TIMER_TOKEN } from "../../utils";
 
 export interface DetectionTaskManagementOperator {
-    createDetectionTask(imageIdList: number[]): Promise<void>;
+    createDetectionTask(imageId: number): Promise<void>;
+    createDetectionTaskBatch(imageIdList: number[]): Promise<void>;
 }
 
 export class DetectionTaskManagementOperatorImpl
@@ -27,38 +28,36 @@ export class DetectionTaskManagementOperatorImpl
         private readonly logger: Logger
     ) {}
 
-    public async createDetectionTask(imageIdList: number[]): Promise<void> {
+    public async createDetectionTask(imageId: number): Promise<void> {
         const requestTime = this.timer.getCurrentTime();
-        for (let imageId of imageIdList) {
-            const requestedTaskCount =
-                await this.detectionTaskDM.getRequestedDetectionTaskCountOfImageId(
-                    imageId
-                );
-            if (requestedTaskCount > 0) {
-                this.logger.error(
-                    "there are existing requested detection task for image",
-                    { imageId }
-                );
-                throw new ErrorWithStatus(
-                    `there are existing requested detection task for image with image_id ${imageId}`,
-                    status.ALREADY_EXISTS
-                );
-            }
-        }
-        await this.detectionTaskDM.withTransaction(async (detectionTaskDM) => {
-            let taskIdList: number[] = [];
-            for (let imageId of imageIdList) {
-                const taskID = await detectionTaskDM.createDetectionTask(
-                    imageId,
-                    requestTime,
-                    DetectionTaskStatus.REQUESTED
-                );
-                taskIdList.push(taskID);
-            }
-            await this.detectionTaskCreatedProducer.createDetectionTaskCreatedMessage(
-                new DetectionTaskCreated(taskIdList)
+        const requestedTaskCount =
+            await this.detectionTaskDM.getRequestedDetectionTaskCountOfImageId(
+                imageId
             );
-        });
+        if (requestedTaskCount > 0) {
+            this.logger.error(
+                "there are existing requested detection task for image",
+                { imageId }
+            );
+            throw new ErrorWithStatus(
+                `there are existing requested detection task for image with image_id ${imageId}`,
+                status.ALREADY_EXISTS
+            );
+        }
+        const taskID = await this.detectionTaskDM.createDetectionTask(
+            imageId,
+            requestTime,
+            DetectionTaskStatus.REQUESTED
+        );
+        await this.detectionTaskCreatedProducer.createDetectionTaskCreatedMessage(
+            new DetectionTaskCreated(taskID)
+        );
+    }
+
+    public async createDetectionTaskBatch(imageIdList: number[]): Promise<void> {
+        for (let imageId of imageIdList) {
+            await this.createDetectionTask(imageId);
+        }
     }
 }
 
