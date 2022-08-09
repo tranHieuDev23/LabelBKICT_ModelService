@@ -54,10 +54,12 @@ export class DetectionTaskManagementOperatorImpl
         );
     }
 
-    public async createDetectionTaskBatch(imageIdList: number[]): Promise<void> {
-        for (let imageId of imageIdList) {
-            await this.createDetectionTask(imageId);
-        }
+    public async createDetectionTaskBatch(
+        imageIdList: number[]
+    ): Promise<void> {
+        await Promise.all(
+            imageIdList.map((imageId) => this.createDetectionTask(imageId))
+        );
     }
 }
 
