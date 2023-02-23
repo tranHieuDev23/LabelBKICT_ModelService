@@ -1,4 +1,8 @@
 import { Container } from "brandi";
+import { 
+    ClassificationTaskCreatedProducerImpl,
+    CLASSIFICATION_TASK_CREATED_PRODUCER_TOKEN 
+} from "./classification_task_created";
 import {
     DetectionTaskCreatedProducerImpl,
     DETECTION_TASK_CREATED_PRODUCER_TOKEN,
@@ -6,6 +10,7 @@ import {
 import { getKafkaProducer, KAFKA_PRODUCER_TOKEN } from "./producer";
 
 export * from "./detection_task_created";
+export * from "./classification_task_created";
 
 export function bindToContainer(container: Container): void {
     container
@@ -15,5 +20,9 @@ export function bindToContainer(container: Container): void {
     container
         .bind(DETECTION_TASK_CREATED_PRODUCER_TOKEN)
         .toInstance(DetectionTaskCreatedProducerImpl)
+        .inSingletonScope();
+    container
+        .bind(CLASSIFICATION_TASK_CREATED_PRODUCER_TOKEN)
+        .toInstance(ClassificationTaskCreatedProducerImpl)
         .inSingletonScope();
 }

@@ -6,6 +6,10 @@ import {
     BINARY_CONVERTER_TOKEN,
     LOGGER_TOKEN,
 } from "../utils";
+import { 
+    ClassificationTaskCreatedMessageHandler,
+    CLASSIFICATION_TASK_CREATED_MESSAGE_HANDLER_TOKEN
+} from "./classification_task_created";
 import {
     DetectionTaskCreatedMessageHandler,
     DETECTION_TASK_CREATED_MESSAGE_HANDLER_TOKEN,
@@ -17,12 +21,15 @@ import {
 
 const TopicNameModelServiceDetectionTaskCreated =
     "model_service_detection_task_created";
+const TopicNameModelServiceClassificationTaskCreated =
+    "model_service_classification_task_created";
 const TopicNameImageServiceImageCreated = "image_service_image_created";
 
 export class ModelServiceKafkaConsumer {
     constructor(
         private readonly messageConsumer: MessageConsumer,
         private readonly detectionTaskCreatedMessageHandler: DetectionTaskCreatedMessageHandler,
+        private readonly classificationTaskCreatedMessageHandler: ClassificationTaskCreatedMessageHandler,
         private readonly imageCreatedMessageHandler: ImageCreatedMessageHandler,
         private readonly binaryConverter: BinaryConverter,
         private readonly logger: Logger
@@ -35,6 +42,11 @@ export class ModelServiceKafkaConsumer {
                     topic: TopicNameModelServiceDetectionTaskCreated,
                     onMessage: (message) =>
                         this.onDetectionTaskCreated(message),
+                },
+                {
+                    topic: TopicNameModelServiceClassificationTaskCreated,
+                    onMessage: (message) =>
+                        this.onClassificationTaskCreated(message),
                 },
                 {
                     topic: TopicNameImageServiceImageCreated,
@@ -62,6 +74,20 @@ export class ModelServiceKafkaConsumer {
         );
     }
 
+    private async onClassificationTaskCreated(
+        message: Buffer | null
+    ): Promise<void> {
+        if (message === null) {
+            this.logger.error("null message, skipping");
+            return;
+        }
+        const classificationTaskCreatedMessage =
+            this.binaryConverter.fromBuffer(message);
+        await this.classificationTaskCreatedMessageHandler.onClassificationTaskCreated(
+            classificationTaskCreatedMessage
+        );
+    }
+
     private async onImageCreated(message: Buffer | null): Promise<void> {
         if (message === null) {
             this.logger.error("null message, skipping");
@@ -78,6 +104,7 @@ injected(
     ModelServiceKafkaConsumer,
     MESSAGE_CONSUMER_TOKEN,
     DETECTION_TASK_CREATED_MESSAGE_HANDLER_TOKEN,
+    CLASSIFICATION_TASK_CREATED_MESSAGE_HANDLER_TOKEN,
     IMAGE_CREATED_MESSAGE_HANDLER_TOKEN,
     BINARY_CONVERTER_TOKEN,
     LOGGER_TOKEN
