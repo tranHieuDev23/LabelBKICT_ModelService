@@ -65,10 +65,17 @@ export class ModelServiceHandlersFactory {
                         code: status.INVALID_ARGUMENT,
                     });
                 }
+                if (req.classificationType == undefined) {
+                    return callback({
+                        message: "classification_type is required",
+                        code: status.INVALID_ARGUMENT
+                    })
+                }
 
                 try {
                     await this.classificationTaskManagementOperator.createClassificationTask(
-                        req.imageId
+                        req.imageId,
+                        req.classificationType
                     );
                     callback(null, {});
                 } catch (e) {
@@ -84,10 +91,17 @@ export class ModelServiceHandlersFactory {
                         code: status.INVALID_ARGUMENT,
                     });
                 }
+                if (req.classificationType === undefined) {
+                    return callback({
+                        message: "classification_type is required",
+                        code: status.INVALID_ARGUMENT
+                    })
+                }
 
                 try {
                     await this.classificationTaskManagementOperator.createClassificationTaskBatch(
-                        req.imageIdList
+                        req.imageIdList,
+                        req.classificationType
                     );
                     callback(null, {});
                 } catch (e) {

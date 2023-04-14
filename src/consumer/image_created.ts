@@ -38,7 +38,7 @@ export class ImageCreatedMessageHandlerImpl
             return;
         }
         await this.detectionTaskManagementOperator.createDetectionTask(imageId);
-        await this.classificationTaskManagementOperator.createClassificationTask(imageId);
+        // await this.classificationTaskManagementOperator.createClassificationTask(imageId);
     }
 }
 

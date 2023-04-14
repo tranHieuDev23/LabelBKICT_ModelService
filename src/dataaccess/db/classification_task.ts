@@ -4,6 +4,7 @@ import { Logger } from "winston";
 import { status } from "@grpc/grpc-js";
 import { ErrorWithStatus, LOGGER_TOKEN } from "../../utils";
 import { KNEX_INSTANCE_TOKEN } from "./knex";
+import { ClassificationType } from "../../proto/gen/ClassificationType";
 
 export enum ClassificationTaskStatus {
   REQUESTED = 0,
@@ -14,6 +15,7 @@ export class ClassificationTask {
   constructor(
     public id: number,
     public ofImageId: number,
+    public classificationType: ClassificationType,
     public requestTime: number,
     public status: ClassificationTaskStatus
   ) {}
@@ -22,6 +24,7 @@ export class ClassificationTask {
 export interface ClassificationTaskDataAccessor {
   createClassificationTask(
     ofImageId: number,
+    clasificationType: ClassificationType,
     requestTime: number,
     taskStatus: ClassificationTaskStatus
   ): Promise<number>;
@@ -44,6 +47,7 @@ const TabNameModelServiceClassificationTask =
 const ColNameModelServiceClassificationTaskClassificationTaskId =
   "classification_task_id";
 const ColNameModelServiceClassificationTaskOfImageId = "of_image_id";
+const ColNameModelServiceClassificationTaskClassificationType = "classification_type";
 const ColNameModelServiceClassificationTaskRequestTime = "request_time";
 const ColNameModelServiceClassificationTaskStatus = "status";
 
@@ -57,6 +61,7 @@ export class ClassificationTaskDataAccessorImpl
 
   public async createClassificationTask(
     ofImageId: number,
+    clasificationType: ClassificationType,
     requestTime: number,
     taskStatus: ClassificationTaskStatus
   ): Promise<number> {
@@ -64,6 +69,7 @@ export class ClassificationTaskDataAccessorImpl
       const rows = await this.knex
         .insert({
           [ColNameModelServiceClassificationTaskOfImageId]: ofImageId,
+          [ColNameModelServiceClassificationTaskClassificationType]: clasificationType,
           [ColNameModelServiceClassificationTaskRequestTime]: requestTime,
           [ColNameModelServiceClassificationTaskStatus]: taskStatus,
         })
@@ -146,6 +152,7 @@ export class ClassificationTaskDataAccessorImpl
         .table(TabNameModelServiceClassificationTask)
         .update({
           [ColNameModelServiceClassificationTaskOfImageId]: classificationTask.ofImageId,
+          [ColNameModelServiceClassificationTaskClassificationType]: classificationTask.classificationType,
           [ColNameModelServiceClassificationTaskRequestTime]:
             classificationTask.requestTime,
           [ColNameModelServiceClassificationTaskStatus]: classificationTask.status,
@@ -183,6 +190,7 @@ export class ClassificationTaskDataAccessorImpl
     return new ClassificationTask(
       +row[ColNameModelServiceClassificationTaskClassificationTaskId],
       +row[ColNameModelServiceClassificationTaskOfImageId],
+      +row[ColNameModelServiceClassificationTaskClassificationType],
       +row[ColNameModelServiceClassificationTaskRequestTime],
       +row[ColNameModelServiceClassificationTaskStatus]
     );

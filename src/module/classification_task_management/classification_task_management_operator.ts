@@ -3,11 +3,18 @@ import { injected, token } from "brandi";
 import { Logger } from "winston";
 import { ClassificationTaskDataAccessor, ClassificationTaskStatus, CLASSIFICATION_TASK_DATA_ACCESSOR_TOKEN } from "../../dataaccess/db/classification_task";
 import { ClassificationTaskCreated, ClassificationTaskCreatedProducer, CLASSIFICATION_TASK_CREATED_PRODUCER_TOKEN } from "../../dataaccess/kafka/producer/classification_task_created";
+import { ClassificationType } from "../../proto/gen/ClassificationType";
 import { ErrorWithStatus, LOGGER_TOKEN, Timer, TIMER_TOKEN } from "../../utils";
 
 export interface ClassificationTaskManagementOperator {
-  createClassificationTask(imageId: number): Promise<void>;
-  createClassificationTaskBatch(imageIdList: number[]): Promise<void>;
+  createClassificationTask(
+    imageId: number,
+    clasificationType: ClassificationType
+  ): Promise<void>;
+  createClassificationTaskBatch(
+    imageIdList: number[],
+    clasificationType: ClassificationType
+  ): Promise<void>;
 }
 
 export class ClassificationTaskManagementOperatorImpl implements ClassificationTaskManagementOperator {
@@ -18,7 +25,10 @@ export class ClassificationTaskManagementOperatorImpl implements ClassificationT
     private readonly logger: Logger
   ) {}
 
-  public async createClassificationTask(imageId: number): Promise<void> {
+  public async createClassificationTask(
+    imageId: number,
+    clasificationType: ClassificationType
+  ): Promise<void> {
     const requestTime = this.timer.getCurrentTime();
     const requestedTaskCount =
         await this.classificationTaskDM.getRequestedClassificationTaskCountOfImageId(
@@ -36,6 +46,7 @@ export class ClassificationTaskManagementOperatorImpl implements ClassificationT
     }
     const taskID = await this.classificationTaskDM.createClassificationTask(
         imageId,
+        clasificationType,
         requestTime,
         ClassificationTaskStatus.REQUESTED
     );
@@ -44,9 +55,12 @@ export class ClassificationTaskManagementOperatorImpl implements ClassificationT
     );
   }
 
-  public async createClassificationTaskBatch(imageIdList: number[]): Promise<void> {
+  public async createClassificationTaskBatch(
+    imageIdList: number[],
+    clasificationType: ClassificationType
+  ): Promise<void> {
       await Promise.all(
-        imageIdList.map((imageId) => this.createClassificationTask(imageId))
+        imageIdList.map((imageId) => this.createClassificationTask(imageId, clasificationType))
       );
   }
 }

@@ -6,6 +6,10 @@ import { IMAGE_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { Image } from "../../proto/gen/Image";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { LOGGER_TOKEN, promisifyGRPCCall } from "../../utils";
+import {
+  GastricClassificationServiceClassifier,
+  GASTRIC_CLASSIFICATION_SERVICE_CLASSIFIER_TOKEN
+} from "./gastric_classification_service_classifier";
 
 export class ClassificationTaskNotFound extends Error {
   constructor() {
@@ -21,6 +25,7 @@ export class ClassifyOperatorImpl implements ClassifyOperator {
   constructor(
     private readonly classificationTaskDM: ClassificationTaskDataAccessor,
     private readonly imageServiceDM: ImageServiceClient,
+    private readonly classifier: GastricClassificationServiceClassifier,
     private readonly logger: Logger
   ) { }
 
@@ -46,7 +51,7 @@ export class ClassifyOperatorImpl implements ClassifyOperator {
       }
 
       const imageId = classificationTask.ofImageId;
-      const image = this.getImage(imageId);
+      const image = await this.getImage(imageId);
       if (image === null) {
         this.logger.warn(
             "no image with the provided id was found, will skip"
@@ -54,10 +59,12 @@ export class ClassifyOperatorImpl implements ClassifyOperator {
         classificationTask.status = ClassificationTaskStatus.DONE;
         await classificationTaskDM.updateClassificationTask(classificationTask);
         return;
-    }
+      }
 
     // TODO: xu ly kqua tra ve
-    console.log("tao classification task thanh cong")
+    console.log("tao classification task thanh cong", classificationTask.classificationType)
+    const classificationResult =
+      await this.classifier.gastricClassificationFromImage(image, classificationTask.classificationType);
 
     classificationTask.status = ClassificationTaskStatus.DONE;
     await classificationTaskDM.updateClassificationTask(classificationTask);
@@ -96,6 +103,7 @@ injected(
   ClassifyOperatorImpl,
   CLASSIFICATION_TASK_DATA_ACCESSOR_TOKEN,
   IMAGE_SERVICE_DM_TOKEN,
+  GASTRIC_CLASSIFICATION_SERVICE_CLASSIFIER_TOKEN,
   LOGGER_TOKEN
 );
 

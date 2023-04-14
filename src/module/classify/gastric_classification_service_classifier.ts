@@ -4,6 +4,7 @@ import { Logger } from "winston";
 import { AnatomicalSite, ClassificationResultDataAccessor, CLASSIFICATION_RESULT_DATA_ACCESSOR_TOKEN, LesionType } from "../../dataaccess/db";
 import { POLYP_DETECTION_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { BucketDM, ORIGINAL_IMAGE_S3_DM_TOKEN } from "../../dataaccess/s3";
+import { ClassificationType } from "../../proto/gen/ClassificationType";
 import { _com_vdsense_polypnet_proto_AnatomicalSite_Values } from "../../proto/gen/com/vdsense/polypnet/proto/AnatomicalSite";
 import { _com_vdsense_polypnet_proto_LesionType_Values } from "../../proto/gen/com/vdsense/polypnet/proto/LesionType";
 import { PolypDetectionRequest } from "../../proto/gen/com/vdsense/polypnet/proto/PolypDetectionRequest";
@@ -21,7 +22,7 @@ import {
 } from "../schemas/converters/lesion_type_proto_to_lesion_type";
 
 export interface GastricClassificationServiceClassifier {
-    gastricClassificationFromImage(image: Image): Promise<void>;
+    gastricClassificationFromImage(image: Image, classificationType: ClassificationType): Promise<void>;
 }
 
 export class GastricClassificationServiceClassifierImpl
@@ -36,7 +37,7 @@ export class GastricClassificationServiceClassifierImpl
         private readonly logger: Logger
     ) { }
 
-    public async gastricClassificationFromImage(image: Image): Promise<void> {
+    public async gastricClassificationFromImage(image: Image, classificationType: ClassificationType): Promise<void> {
         if (image.originalImageFilename === undefined) {
             this.logger.error("image does not have original image file name", {
                 imageId: image.id,
@@ -45,7 +46,8 @@ export class GastricClassificationServiceClassifierImpl
         }
         const imageData = await this.originalImageS3DM.getFile(
             image.originalImageFilename
-        );
+            );
+        // console.log("classificationType", classificationType);
         const polypDetectResponse = await this.getPolypDetectResponse(
             imageData,
             this.polypDetectionServiceDM

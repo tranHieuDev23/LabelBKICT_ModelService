@@ -4,9 +4,9 @@ import { createLogger, format, Logger, transports } from "winston";
 import "winston-daily-rotate-file";
 import { ElasticsearchTransport } from "winston-elasticsearch";
 import { LogConfig, LOG_CONFIG_TOKEN } from "../config";
-import { ELASTICSEARCH_CLIENT_TOKEN } from "../dataaccess/elasticsearch";
+// import { ELASTICSEARCH_CLIENT_TOKEN } from "../dataaccess/elasticsearch";
 
-export function initializeLogger(elasticsearchClient: Client, logConfig: LogConfig): Logger {
+export function initializeLogger(logConfig: LogConfig): Logger {
     const logger = createLogger({
         format: format.combine(format.timestamp(), format.json()),
         defaultMeta: {},
@@ -23,11 +23,11 @@ export function initializeLogger(elasticsearchClient: Client, logConfig: LogConf
                 filename: "info-%DATE%.log",
                 datePattern: "YYYY-MM-DD-HH",
             }),
-            new ElasticsearchTransport({
-                level: "info",
-                source: "model_service",
-                client: elasticsearchClient,
-            }),
+            // new ElasticsearchTransport({
+            //     level: "info",
+            //     source: "model_service",
+            //     client: elasticsearchClient,
+            // }),
         ],
     });
 
@@ -40,6 +40,6 @@ export function initializeLogger(elasticsearchClient: Client, logConfig: LogConf
     return logger;
 }
 
-injected(initializeLogger, ELASTICSEARCH_CLIENT_TOKEN, LOG_CONFIG_TOKEN);
+injected(initializeLogger, LOG_CONFIG_TOKEN);
 
 export const LOGGER_TOKEN = token<Logger>("Logger");

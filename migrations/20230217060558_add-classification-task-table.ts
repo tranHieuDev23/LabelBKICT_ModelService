@@ -9,6 +9,7 @@ export async function up(knex: Knex): Promise<void> {
             (tab) => {
                 tab.increments("classification_task_id", { primaryKey: true });
                 tab.integer("of_image_id").notNullable();
+                tab.integer("classification_type").notNullable();
                 tab.bigInteger("request_time").notNullable();
                 tab.smallint("status").notNullable();
 
