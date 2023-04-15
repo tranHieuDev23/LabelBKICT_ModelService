@@ -26,13 +26,77 @@ message Polyp {
 
 message PolypDetectionResponse {
     repeated Polyp polyps = 1;
+    AnatomicalSite.Values anatomicalSite = 2;
+    LesionType.Values lesionType = 3;
+    bool hpStatus = 4;
 }
 
 message BatchPolypDetectionResponse {
     repeated PolypDetectionResponse responses = 1;
 }
 
+message AnatomicalSite {
+    enum Values {
+        PHARYNX = 0;
+        ESOPHAGUS = 1;
+        CARDIA = 2;
+        GASTRIC_BODY = 3;
+        GASTRIC_FUNDUS = 4;
+        GASTRIC_ANTRUM = 5;
+        GREATER_CURVATURE = 6;
+        LESSER_CURVATURE = 7;
+        DUODENUM_BULB = 8;
+        DUODENUM = 9;
+        UNQUALIFIER = 10;
+    }
+}
+
+message AnatomicalSiteClassificationRequest {
+    Image image = 1;
+}
+
+message BatchAnatomicalSiteClassificationRequest {
+    repeated AnatomicalSiteClassificationRequest requests = 1;
+}
+
+message AnatomicalSiteClassificationResponse {
+    AnatomicalSite anatomicalSite = 1;
+}
+
+message BatchAnatomicalSiteClassificationResponse {
+    repeated AnatomicalSiteClassificationResponse responses = 1;
+}
+
+message LesionType {
+    enum Values {
+        REFLUX_ESOPHAGITIS = 0;
+        ESOPHAGEAL_CANCER = 1;
+        GASTRITIS = 2;
+        STOMACH_CANCER = 3;
+        DUODENAL_ULCER = 4;
+        NON_LESION = 5;
+    }
+}
+
+message LesionTypeClassificationRequest {
+    Image image = 1;
+}
+
+message BatchLesionTypeClassificationRequest {
+    repeated LesionTypeClassificationRequest requests = 1;
+}
+
+message LesionTypeClassificationResponse {
+    LesionType lesionType = 1;
+}
+
+message BatchLesionTypeClassificationResponse {
+    repeated LesionTypeClassificationResponse responses = 1;
+}
+
 service PolypDetectionService {
     rpc BatchPolypDetect(BatchPolypDetectionRequest) returns (BatchPolypDetectionResponse) {};
     rpc StreamPolypDetect(stream PolypDetectionRequest) returns (stream PolypDetectionResponse) {};
+    rpc BatchAnatomicalSiteClassify(BatchAnatomicalSiteClassificationRequest) returns (BatchAnatomicalSiteClassificationResponse) {};
+    rpc BatchLesionTypeClassification(BatchLesionTypeClassificationRequest) returns (BatchLesionTypeClassificationResponse) {};
 }
