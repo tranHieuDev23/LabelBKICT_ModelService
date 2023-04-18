@@ -4,7 +4,7 @@ import { Logger } from "winston";
 import { AnatomicalSite, ClassificationResultDataAccessor, CLASSIFICATION_RESULT_DATA_ACCESSOR_TOKEN, LesionType } from "../../dataaccess/db";
 import { POLYP_DETECTION_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { BucketDM, ORIGINAL_IMAGE_S3_DM_TOKEN } from "../../dataaccess/s3";
-import { ClassificationType } from "../../proto/gen/ClassificationType";
+import { ClassificationType, _ClassificationType_Values } from "../../proto/gen/ClassificationType";
 import { _com_vdsense_polypnet_proto_AnatomicalSite_Values } from "../../proto/gen/com/vdsense/polypnet/proto/AnatomicalSite";
 import { _com_vdsense_polypnet_proto_LesionType_Values } from "../../proto/gen/com/vdsense/polypnet/proto/LesionType";
 import { PolypDetectionRequest } from "../../proto/gen/com/vdsense/polypnet/proto/PolypDetectionRequest";
@@ -21,12 +21,12 @@ import {
     LESION_TYPE_PROTO_TO_LESION_TYPE_CONVERTER_TOKEN
 } from "../schemas/converters/lesion_type_proto_to_lesion_type";
 
-export interface GastricClassificationServiceClassifier {
-    gastricClassificationFromImage(image: Image, classificationType: ClassificationType): Promise<void>;
+export interface UpperGastrointestinalClassificationServiceClassifier {
+    upperGastrointestinalClassificationFromImage(image: Image, classificationType: ClassificationType): Promise<AnatomicalSite | LesionType | boolean>;
 }
 
-export class GastricClassificationServiceClassifierImpl
-    implements GastricClassificationServiceClassifier {
+export class UpperGastrointestinalClassificationServiceClassifierImpl
+    implements UpperGastrointestinalClassificationServiceClassifier {
     constructor(
         private readonly polypDetectionServiceDM: PolypDetectionServiceClient,
         private readonly classificationResultDM: ClassificationResultDataAccessor,
@@ -37,7 +37,7 @@ export class GastricClassificationServiceClassifierImpl
         private readonly logger: Logger
     ) { }
 
-    public async gastricClassificationFromImage(image: Image, classificationType: ClassificationType): Promise<void> {
+    public async upperGastrointestinalClassificationFromImage(image: Image, classificationType: ClassificationType): Promise<AnatomicalSite | LesionType | boolean> {
         if (image.originalImageFilename === undefined) {
             this.logger.error("image does not have original image file name", {
                 imageId: image.id,
@@ -47,7 +47,6 @@ export class GastricClassificationServiceClassifierImpl
         const imageData = await this.originalImageS3DM.getFile(
             image.originalImageFilename
             );
-        // console.log("classificationType", classificationType);
         const polypDetectResponse = await this.getPolypDetectResponse(
             imageData,
             this.polypDetectionServiceDM
@@ -63,6 +62,11 @@ export class GastricClassificationServiceClassifierImpl
         let { anatomicalSite, lesionType, hpStatus } = polypDetectResponse;
         const anatomicalSiteValue: AnatomicalSite = this.anatomicalSiteProtoToAnatomicalSiteConverter.convert(anatomicalSite as any);
         const lesionTypeValue: LesionType = this.lesionTypeProtoToLesionTypeConverter.convert(lesionType as any);
+        if (classificationType === _ClassificationType_Values.ANATOMICAL_SITE)
+            return anatomicalSiteValue;
+        else if (classificationType === _ClassificationType_Values.LESION_TYPE)
+            return lesionTypeValue;
+        else return hpStatus || false;
     }
 
     private async getPolypDetectResponse(
@@ -94,7 +98,7 @@ export class GastricClassificationServiceClassifierImpl
 }
 
 injected(
-    GastricClassificationServiceClassifierImpl,
+    UpperGastrointestinalClassificationServiceClassifierImpl,
     POLYP_DETECTION_SERVICE_DM_TOKEN,
     CLASSIFICATION_RESULT_DATA_ACCESSOR_TOKEN,
     ANATOMICAL_SITE_PROTO_TO_ANATOMICAL_SITE_CONVERTER_TOKEN,
@@ -104,5 +108,5 @@ injected(
     LOGGER_TOKEN
 );
 
-export const GASTRIC_CLASSIFICATION_SERVICE_CLASSIFIER_TOKEN = 
-    token<GastricClassificationServiceClassifier>("GastricClassificationServiceClassifier");
+export const UPPER_GASTROINTESTINAL_CLASSIFICATION_SERVICE_CLASSIFIER_TOKEN = 
+    token<UpperGastrointestinalClassificationServiceClassifier>("UpperGastrointestinalClassificationServiceClassifier");

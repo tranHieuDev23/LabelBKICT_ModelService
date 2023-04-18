@@ -1,9 +1,9 @@
 import { Container } from "brandi";
 import { ClassifyOperatorImpl, CLASSIFY_OPERATOR_TOKEN } from "./classify_operator";
 import {
-    GastricClassificationServiceClassifierImpl,
-    GASTRIC_CLASSIFICATION_SERVICE_CLASSIFIER_TOKEN
-} from "./gastric_classification_service_classifier";
+    UpperGastrointestinalClassificationServiceClassifierImpl,
+    UPPER_GASTROINTESTINAL_CLASSIFICATION_SERVICE_CLASSIFIER_TOKEN
+} from "./upper_gastrointestinal_classification_service_classifier";
 
 export * from "./classify_operator"
 
@@ -13,7 +13,7 @@ export function bindToContainer(container: Container): void {
         .toInstance(ClassifyOperatorImpl)
         .inSingletonScope();
     container
-        .bind(GASTRIC_CLASSIFICATION_SERVICE_CLASSIFIER_TOKEN)
-        .toInstance(GastricClassificationServiceClassifierImpl)
+        .bind(UPPER_GASTROINTESTINAL_CLASSIFICATION_SERVICE_CLASSIFIER_TOKEN)
+        .toInstance(UpperGastrointestinalClassificationServiceClassifierImpl)
         .inSingletonScope();
 }

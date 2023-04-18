@@ -23,7 +23,7 @@ export class ClassificationTaskCreatedMessageHandlerImpl
             "model_service_classification_task_created message received",
             { payload: message }
         );
-        await this.classifyOperator.processClassificationTask(message.classificationTaskId);
+        await this.classifyOperator.processClassificationTask(message.classificationTaskId, message.classificationType);
     }
 }
 

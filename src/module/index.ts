@@ -4,8 +4,10 @@ import * as detectionTaskManagement from "./detection_task_management";
 import * as classify from "./classify";
 import * as classificationTaskManagement from "./classification_task_management";
 import * as converters from "./schemas/converters"
+import * as mappings from "./mappings";
 
 export function bindToContainer(container: Container): void {
+    mappings.bindToContainer(container);
     converters.bindToContainer(container);
     detect.bindToContainer(container);
     detectionTaskManagement.bindToContainer(container);

@@ -51,7 +51,7 @@ export class ClassificationTaskManagementOperatorImpl implements ClassificationT
         ClassificationTaskStatus.REQUESTED
     );
     await this.classificationTaskCreatedProducer.createClassificationTaskCreatedMessage(
-        new ClassificationTaskCreated(taskID)
+        new ClassificationTaskCreated(taskID, clasificationType)
     );
   }
 
