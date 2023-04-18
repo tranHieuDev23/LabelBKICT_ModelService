@@ -108,44 +108,6 @@ export class ModelServiceHandlersFactory {
                     this.handleError(e, callback);
                 }
             },
-
-            // GetAnatomicalSiteClassificationTask: async (call, callback) => {
-            //     const req = call.request;
-            //     if (req.imageId === undefined) {
-            //         return callback({
-            //             message: "image_id is required",
-            //             code: status.INVALID_ARGUMENT,
-            //         });
-            //     }
-
-            //     try {
-            //         await this.classificationTaskManagementOperator.createClassificationTask(
-            //             req.imageId
-            //         );
-            //         callback(null, {});
-            //     } catch (e) {
-            //         this.handleError(e, callback);
-            //     }
-            // },
-
-            // GetAnatomicalSiteClassificationTaskBatch: async (call, callback) => {
-            //     const req = call.request;
-            //     if (req.imageIdList === undefined) {
-            //         return callback({
-            //             message: "image_id_list is required",
-            //             code: status.INVALID_ARGUMENT,
-            //         });
-            //     }
-
-            //     try {
-            //         await this.classificationTaskManagementOperator.createClassificationTaskBatch(
-            //             req.imageIdList
-            //         );
-            //         callback(null, {});
-            //     } catch (e) {
-            //         this.handleError(e, callback);
-            //     }
-            // },
         };
         return handler;
     }
