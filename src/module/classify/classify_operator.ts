@@ -11,12 +11,11 @@ import {
   UPPER_GASTROINTESTINAL_CLASSIFICATION_SERVICE_CLASSIFIER_TOKEN
 } from "./upper_gastrointestinal_classification_service_classifier";
 import { ClassificationType, _ClassificationType_Values } from "../../proto/gen/ClassificationType";
-import { AnatomicalSite } from "../../dataaccess/db";
 import { ImageTag } from "../../proto/gen/ImageTag";
 import { 
   AnatomicalSiteValueToImageTagMapping,
   ANATOMICAL_SITE_VALUE_TO_IMAGE_TAG_MAPPING_TOKEN
-} from "../mappings";
+} from "../schemas/mappings";
 
 const ANATOMICAL_SITE_TAG_GROUP_NAME = "AI-Anatomical site";
 
@@ -74,14 +73,20 @@ export class ClassifyOperatorImpl implements ClassifyOperator {
         return;
       }
 
-      // TODO: xu ly kqua tra ve
-      console.log("tao classification task thanh cong", classificationTask.classificationType);
-      // const classificationValue = this.upperGastrointestinalClassifier.upperGastrointestinalClassificationFromImage(image, classificationType);
+      const classificationValue: string = await this.upperGastrointestinalClassifier.upperGastrointestinalClassificationFromImage(image, classificationType);
       classificationTask.status = ClassificationTaskStatus.DONE;
       await classificationTaskDM.updateClassificationTask(classificationTask);
       
       // Map to corresponding image tag and add to image
-      const imageTag: ImageTag = await this.anatomicalSiteValueToImageTagMapping.mapping(AnatomicalSite.DUODENUM_BULB);
+      const imageTag: ImageTag | undefined 
+        = await this.anatomicalSiteValueToImageTagMapping.mapping(classificationValue);
+
+      if (imageTag === undefined) {
+        this.logger.warn(
+            "no image tag with the provided classification value was found, will skip"
+        );
+        return;
+      }
       const { error: addImageTagToImageError, response: addImageTagToImageResponse } =
         await promisifyGRPCCall(
           this.imageServiceDM.addImageTagToImage.bind(this.imageServiceDM),

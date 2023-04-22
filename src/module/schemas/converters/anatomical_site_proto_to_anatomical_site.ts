@@ -3,7 +3,7 @@ import { AnatomicalSite } from "../../../dataaccess/db/classification_result";
 import { _com_vdsense_polypnet_proto_AnatomicalSite_Values } from "../../../proto/gen/com/vdsense/polypnet/proto/AnatomicalSite";
 
 export interface AnatomicalSiteProtoToAnatomicalSiteConverter {
-    convert(anatomicalSite: _com_vdsense_polypnet_proto_AnatomicalSite_Values): AnatomicalSite;
+    convert(anatomicalSiteValue: string): string;
 }
 
 export class AnatomicalSiteProtoToAnatomicalSiteConverterImpl
@@ -11,30 +11,30 @@ export class AnatomicalSiteProtoToAnatomicalSiteConverterImpl
 {
     constructor() {}
 
-    public convert(anatomicalSite: _com_vdsense_polypnet_proto_AnatomicalSite_Values): AnatomicalSite {
-        switch (anatomicalSite) {
-            case _com_vdsense_polypnet_proto_AnatomicalSite_Values.PHARYNX:
-                return AnatomicalSite.PHARYNX;
-            case _com_vdsense_polypnet_proto_AnatomicalSite_Values.ESOPHAGUS:
-                return AnatomicalSite.ESOPHAGUS;
-            case _com_vdsense_polypnet_proto_AnatomicalSite_Values.CARDIA:
-                return AnatomicalSite.CARDIA;
-            case _com_vdsense_polypnet_proto_AnatomicalSite_Values.GASTRIC_BODY:
-                return AnatomicalSite.GASTRIC_BODY;
-            case _com_vdsense_polypnet_proto_AnatomicalSite_Values.GASTRIC_FUNDUS:
-                return AnatomicalSite.GASTRIC_FUNDUS;
-            case _com_vdsense_polypnet_proto_AnatomicalSite_Values.GASTRIC_ANTRUM:
-                return AnatomicalSite.GASTRIC_ANTRUM;
-            case _com_vdsense_polypnet_proto_AnatomicalSite_Values.GREATER_CURVATURE:
-                return AnatomicalSite.GREATER_CURVATURE;
-            case _com_vdsense_polypnet_proto_AnatomicalSite_Values.LESSER_CURVATURE:
-                return AnatomicalSite.LESSER_CURVATURE;
-            case _com_vdsense_polypnet_proto_AnatomicalSite_Values.DUODENUM_BULB:
-                return AnatomicalSite.DUODENUM_BULB;
-            case _com_vdsense_polypnet_proto_AnatomicalSite_Values.DUODENUM:
-                return AnatomicalSite.DUODENUM;
+    public convert(anatomicalSiteValue: string): string {
+        switch (anatomicalSiteValue) {
+            case _com_vdsense_polypnet_proto_AnatomicalSite_Values[0]:
+                return AnatomicalSite[0];
+            case _com_vdsense_polypnet_proto_AnatomicalSite_Values[1]:
+                return AnatomicalSite[1];
+            case _com_vdsense_polypnet_proto_AnatomicalSite_Values[2]:
+                return AnatomicalSite[2];
+            case _com_vdsense_polypnet_proto_AnatomicalSite_Values[3]:
+                return AnatomicalSite[3];
+            case _com_vdsense_polypnet_proto_AnatomicalSite_Values[4]:
+                return AnatomicalSite[4];
+            case _com_vdsense_polypnet_proto_AnatomicalSite_Values[5]:
+                return AnatomicalSite[5];
+            case _com_vdsense_polypnet_proto_AnatomicalSite_Values[6]:
+                return AnatomicalSite[6];
+            case _com_vdsense_polypnet_proto_AnatomicalSite_Values[7]:
+                return AnatomicalSite[7];
+            case _com_vdsense_polypnet_proto_AnatomicalSite_Values[8]:
+                return AnatomicalSite[8];
+            case _com_vdsense_polypnet_proto_AnatomicalSite_Values[9]:
+                return AnatomicalSite[9];
             default:
-                return AnatomicalSite.UNQUALIFIER;
+                return AnatomicalSite[10];
         }
     }
 }

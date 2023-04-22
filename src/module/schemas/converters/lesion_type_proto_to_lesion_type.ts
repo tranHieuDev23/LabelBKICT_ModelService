@@ -3,7 +3,7 @@ import { LesionType } from "../../../dataaccess/db/classification_result";
 import { _com_vdsense_polypnet_proto_LesionType_Values } from "../../../proto/gen/com/vdsense/polypnet/proto/LesionType";
 
 export interface LesionTypeProtoToLesionTypeConverter {
-    convert(anatomicalSite: _com_vdsense_polypnet_proto_LesionType_Values): LesionType;
+    convert(lesionTypeValue: string): string;
 }
 
 export class LesionTypeProtoToLesionTypeConverterImpl
@@ -11,20 +11,20 @@ export class LesionTypeProtoToLesionTypeConverterImpl
 {
     constructor() {}
 
-    public convert(anatomicalSite: _com_vdsense_polypnet_proto_LesionType_Values): LesionType {
-        switch (anatomicalSite) {
-            case _com_vdsense_polypnet_proto_LesionType_Values.REFLUX_ESOPHAGITIS:
-                return LesionType.REFLUX_ESOPHAGITIS;
-            case _com_vdsense_polypnet_proto_LesionType_Values.ESOPHAGEAL_CANCER:
-                return LesionType.ESOPHAGEAL_CANCER;
-            case _com_vdsense_polypnet_proto_LesionType_Values.GASTRITIS:
-                return LesionType.GASTRITIS;
-            case _com_vdsense_polypnet_proto_LesionType_Values.STOMACH_CANCER:
-                return LesionType.STOMACH_CANCER;
-            case _com_vdsense_polypnet_proto_LesionType_Values.DUODENAL_ULCER:
-                return LesionType.DUODENAL_ULCER;
+    public convert(lesionTypeValue: string): string {
+        switch (lesionTypeValue) {
+            case _com_vdsense_polypnet_proto_LesionType_Values[0]:
+                return LesionType[0];
+            case _com_vdsense_polypnet_proto_LesionType_Values[1]:
+                return LesionType[1];
+            case _com_vdsense_polypnet_proto_LesionType_Values[3]:
+                return LesionType[3];
+            case _com_vdsense_polypnet_proto_LesionType_Values[4]:
+                return LesionType[4];
+            case _com_vdsense_polypnet_proto_LesionType_Values[5]:
+                return LesionType[5];
             default:
-                return LesionType.NON_LESION;
+                return "";
         }
     }
 }

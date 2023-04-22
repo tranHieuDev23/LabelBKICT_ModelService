@@ -28,7 +28,7 @@ message PolypDetectionResponse {
     repeated Polyp polyps = 1;
     AnatomicalSite.Values anatomicalSite = 2;
     LesionType.Values lesionType = 3;
-    bool hpStatus = 4;
+    HpStatus.Values hpStatus = 4;
 }
 
 message BatchPolypDetectionResponse {
@@ -47,7 +47,6 @@ message AnatomicalSite {
         LESSER_CURVATURE = 7;
         DUODENUM_BULB = 8;
         DUODENUM = 9;
-        UNQUALIFIER = 10;
     }
 }
 
@@ -69,12 +68,19 @@ message BatchAnatomicalSiteClassificationResponse {
 
 message LesionType {
     enum Values {
-        REFLUX_ESOPHAGITIS = 0;
+        NON_LESION = 0;
         ESOPHAGEAL_CANCER = 1;
-        GASTRITIS = 2;
-        STOMACH_CANCER = 3;
-        DUODENAL_ULCER = 4;
-        NON_LESION = 5;
+        REFLUX_ESOPHAGITIS = 2;
+        DUODENAL_ULCER = 3;
+        STOMACH_CANCER = 4;
+        GASTRITIS = 5;
+    }
+}
+
+message HpStatus {
+    enum Values {
+        NEGATIVE = 0;
+        POSITIVE = 1;
     }
 }
 

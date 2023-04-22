@@ -28,6 +28,11 @@ export enum LesionType {
   NON_LESION = 5,
 }
 
+export enum HpStatus {
+  NEGATIVE = 0,
+  POSITIVE = 1,
+}
+
 export class ClassificationResult {
   constructor(
     public id: number,
