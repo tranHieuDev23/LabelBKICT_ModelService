@@ -3,6 +3,17 @@ syntax = "proto3";
 service ModelService {
     rpc CreateDetectionTask(CreateDetectionTaskRequest) returns (CreateDetectionTaskResponse) {}
     rpc CreateDetectionTaskBatch(CreateDetectionTaskBatchRequest) returns (CreateDetectionTaskBatchResponse) {}
+    rpc CreateClassificationTask(CreateClassificationTaskRequest) returns (CreateClassificationTaskResponse) {}
+    rpc CreateClassificationTaskBatch(CreateClassificationTaskBatchRequest) returns (CreateClassificationTaskBatchResponse) {}
+}
+
+// Business objects
+message ClassificationType {
+    enum Values {
+        ANATOMICAL_SITE = 0;
+        LESION_TYPE = 1;
+        HP = 2;
+    }
 }
 
 message CreateDetectionTaskRequest {
@@ -16,3 +27,17 @@ message CreateDetectionTaskBatchRequest {
 }
 
 message CreateDetectionTaskBatchResponse {} 
+
+message CreateClassificationTaskRequest {
+    uint32 image_id = 1;
+    ClassificationType.Values classification_type = 2;
+}
+
+message CreateClassificationTaskResponse {}
+
+message CreateClassificationTaskBatchRequest {
+    repeated uint32 image_id_list = 1;
+    ClassificationType.Values classification_type = 2;
+}
+
+message CreateClassificationTaskBatchResponse {}

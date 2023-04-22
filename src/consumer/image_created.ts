@@ -1,5 +1,9 @@
 import { injected, token } from "brandi";
 import { Logger } from "winston";
+import { 
+    ClassificationTaskManagementOperator,
+    CLASSIFICATION_TASK_MANAGEMENT_OPERATOR_TOKEN
+} from "../module/classification_task_management";
 import {
     DetectionTaskManagementOperator,
     DETECTION_TASK_MANAGEMENT_OPERATOR_TOKEN,
@@ -20,6 +24,7 @@ export class ImageCreatedMessageHandlerImpl
 {
     constructor(
         private readonly detectionTaskManagementOperator: DetectionTaskManagementOperator,
+        private readonly classificationTaskManagementOperator: ClassificationTaskManagementOperator,
         private readonly logger: Logger
     ) {}
 
@@ -33,12 +38,14 @@ export class ImageCreatedMessageHandlerImpl
             return;
         }
         await this.detectionTaskManagementOperator.createDetectionTask(imageId);
+        // await this.classificationTaskManagementOperator.createClassificationTask(imageId);
     }
 }
 
 injected(
     ImageCreatedMessageHandlerImpl,
     DETECTION_TASK_MANAGEMENT_OPERATOR_TOKEN,
+    CLASSIFICATION_TASK_MANAGEMENT_OPERATOR_TOKEN,
     LOGGER_TOKEN
 );
 

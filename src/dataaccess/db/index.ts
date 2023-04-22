@@ -3,9 +3,19 @@ import {
     DetectionTaskDataAccessorImpl,
     DETECTION_TASK_DATA_ACCESSOR_TOKEN,
 } from "./detection_task";
+import {
+    ClassificationResultDataAccessorImpl,
+    CLASSIFICATION_RESULT_DATA_ACCESSOR_TOKEN
+} from "./classification_result";
 import { KNEX_INSTANCE_TOKEN, newKnexInstance } from "./knex";
+import { 
+    ClassificationTaskDataAccessorImpl,
+    CLASSIFICATION_TASK_DATA_ACCESSOR_TOKEN 
+} from "./classification_task";
 
 export * from "./detection_task";
+export * from "./classification_task";
+export * from "./classification_result"
 
 export function bindToContainer(container: Container): void {
     container
@@ -15,5 +25,13 @@ export function bindToContainer(container: Container): void {
     container
         .bind(DETECTION_TASK_DATA_ACCESSOR_TOKEN)
         .toInstance(DetectionTaskDataAccessorImpl)
+        .inSingletonScope();
+    container
+        .bind(CLASSIFICATION_TASK_DATA_ACCESSOR_TOKEN)
+        .toInstance(ClassificationTaskDataAccessorImpl)
+        .inSingletonScope();
+    container
+        .bind(CLASSIFICATION_RESULT_DATA_ACCESSOR_TOKEN)
+        .toInstance(ClassificationResultDataAccessorImpl)
         .inSingletonScope();
 }
