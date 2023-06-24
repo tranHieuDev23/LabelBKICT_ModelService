@@ -18,9 +18,7 @@ export interface DetectionTaskManagementOperator {
     createDetectionTaskBatch(imageIdList: number[]): Promise<void>;
 }
 
-export class DetectionTaskManagementOperatorImpl
-    implements DetectionTaskManagementOperator
-{
+export class DetectionTaskManagementOperatorImpl implements DetectionTaskManagementOperator {
     constructor(
         private readonly detectionTaskDM: DetectionTaskDataAccessor,
         private readonly detectionTaskCreatedProducer: DetectionTaskCreatedProducer,
@@ -30,36 +28,21 @@ export class DetectionTaskManagementOperatorImpl
 
     public async createDetectionTask(imageId: number): Promise<void> {
         const requestTime = this.timer.getCurrentTime();
-        const requestedTaskCount =
-            await this.detectionTaskDM.getRequestedDetectionTaskCountOfImageId(
-                imageId
-            );
+        const requestedTaskCount = await this.detectionTaskDM.getRequestedDetectionTaskCountOfImageId(imageId);
         if (requestedTaskCount > 0) {
-            this.logger.error(
-                "there are existing requested detection task for image",
-                { imageId }
-            );
-            throw new ErrorWithStatus(
-                `there are existing requested detection task for image with image_id ${imageId}`,
-                status.ALREADY_EXISTS
-            );
+            this.logger.error("there are existing requested detection task for image", { imageId });
+            return;
         }
         const taskID = await this.detectionTaskDM.createDetectionTask(
             imageId,
             requestTime,
             DetectionTaskStatus.REQUESTED
         );
-        await this.detectionTaskCreatedProducer.createDetectionTaskCreatedMessage(
-            new DetectionTaskCreated(taskID)
-        );
+        await this.detectionTaskCreatedProducer.createDetectionTaskCreatedMessage(new DetectionTaskCreated(taskID));
     }
 
-    public async createDetectionTaskBatch(
-        imageIdList: number[]
-    ): Promise<void> {
-        await Promise.all(
-            imageIdList.map((imageId) => this.createDetectionTask(imageId))
-        );
+    public async createDetectionTaskBatch(imageIdList: number[]): Promise<void> {
+        await Promise.all(imageIdList.map((imageId) => this.createDetectionTask(imageId)));
     }
 }
 
@@ -71,5 +54,6 @@ injected(
     LOGGER_TOKEN
 );
 
-export const DETECTION_TASK_MANAGEMENT_OPERATOR_TOKEN =
-    token<DetectionTaskManagementOperator>("DetectionTaskManagementOperator");
+export const DETECTION_TASK_MANAGEMENT_OPERATOR_TOKEN = token<DetectionTaskManagementOperator>(
+    "DetectionTaskManagementOperator"
+);
