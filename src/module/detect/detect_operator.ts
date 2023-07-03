@@ -36,38 +36,28 @@ export class DetectOperatorImpl implements DetectOperator {
 
     public async processDetectionTask(detectionTaskId: number): Promise<void> {
         await this.detectionTaskDM.withTransaction(async (detectionTaskDM) => {
-            const detectionTask =
-                await detectionTaskDM.getDetectionTaskWithXLock(
-                    detectionTaskId
-                );
+            const detectionTask = await detectionTaskDM.getDetectionTaskWithXLock(detectionTaskId);
             if (detectionTask === null) {
-                this.logger.error(
-                    "no detection task with detection_task_id found",
-                    { detectionTaskId }
-                );
+                this.logger.error("no detection task with detection_task_id found", { detectionTaskId });
                 throw new DetectionTaskNotFound();
             }
             if (detectionTask.status === DetectionTaskStatus.DONE) {
-                this.logger.error(
-                    "detection task with detection_task_id already has status of done",
-                    { detectionTaskId }
-                );
+                this.logger.info("detection task with detection_task_id already has status of done", {
+                    detectionTaskId,
+                });
                 return;
             }
 
             const imageId = detectionTask.ofImageId;
             const image = await this.getImage(imageId);
             if (image === null) {
-                this.logger.warn(
-                    "no image with the provided id was found, will skip"
-                );
+                this.logger.warn("no image with the provided id was found, will skip");
                 detectionTask.status = DetectionTaskStatus.DONE;
                 await detectionTaskDM.updateDetectionTask(detectionTask);
                 return;
             }
 
-            const regionList =
-                await this.polypDetector.detectRegionListFromImage(image);
+            const regionList = await this.polypDetector.detectRegionListFromImage(image);
             await Promise.all(
                 regionList.map(async (region) => {
                     await this.createRegion(imageId, region);
@@ -80,17 +70,13 @@ export class DetectOperatorImpl implements DetectOperator {
     }
 
     private async getImage(imageId: number): Promise<Image | null> {
-        const { error: getImageError, response: getImageResponse } =
-            await promisifyGRPCCall(
-                this.imageServiceDM.getImage.bind(this.imageServiceDM),
-                { id: imageId }
-            );
+        const { error: getImageError, response: getImageResponse } = await promisifyGRPCCall(
+            this.imageServiceDM.getImage.bind(this.imageServiceDM),
+            { id: imageId }
+        );
         if (getImageError !== null) {
             if (getImageError.code === status.NOT_FOUND) {
-                this.logger.warn(
-                    "called image_service.getImage(), but no image was found",
-                    { error: getImageError }
-                );
+                this.logger.warn("called image_service.getImage(), but no image was found", { error: getImageError });
                 return null;
             }
 
@@ -106,10 +92,7 @@ export class DetectOperatorImpl implements DetectOperator {
         return getImageResponse.image;
     }
 
-    private async createRegion(
-        imageId: number,
-        border: Polygon
-    ): Promise<void> {
+    private async createRegion(imageId: number, border: Polygon): Promise<void> {
         const { error: createRegionError } = await promisifyGRPCCall(
             this.imageServiceDM.createRegion.bind(this.imageServiceDM),
             {
