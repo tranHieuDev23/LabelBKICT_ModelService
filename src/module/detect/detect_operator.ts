@@ -35,38 +35,39 @@ export class DetectOperatorImpl implements DetectOperator {
     ) {}
 
     public async processDetectionTask(detectionTaskId: number): Promise<void> {
-        await this.detectionTaskDM.withTransaction(async (detectionTaskDM) => {
-            const detectionTask = await detectionTaskDM.getDetectionTaskWithXLock(detectionTaskId);
-            if (detectionTask === null) {
-                this.logger.error("no detection task with detection_task_id found", { detectionTaskId });
-                throw new DetectionTaskNotFound();
-            }
-            if (detectionTask.status === DetectionTaskStatus.DONE) {
-                this.logger.info("detection task with detection_task_id already has status of done", {
-                    detectionTaskId,
-                });
-                return;
-            }
+        const detectionTask = await this.detectionTaskDM.getDetectionTaskWithXLock(detectionTaskId);
+        if (detectionTask === null) {
+            this.logger.error("no detection task with detection_task_id found", { detectionTaskId });
+            throw new DetectionTaskNotFound();
+        }
+        if (detectionTask.status !== DetectionTaskStatus.REQUESTED) {
+            this.logger.info("detection task with detection_task_id does not have status of requested", {
+                detectionTaskId,
+            });
+            return;
+        }
 
-            const imageId = detectionTask.ofImageId;
-            const image = await this.getImage(imageId);
-            if (image === null) {
-                this.logger.warn("no image with the provided id was found, will skip");
-                detectionTask.status = DetectionTaskStatus.DONE;
-                await detectionTaskDM.updateDetectionTask(detectionTask);
-                return;
-            }
+        detectionTask.status = DetectionTaskStatus.PROCESSING;
+        await this.detectionTaskDM.updateDetectionTask(detectionTask);
 
-            const regionList = await this.polypDetector.detectRegionListFromImage(image);
-            await Promise.all(
-                regionList.map(async (region) => {
-                    await this.createRegion(imageId, region);
-                })
-            );
-
+        const imageId = detectionTask.ofImageId;
+        const image = await this.getImage(imageId);
+        if (image === null) {
+            this.logger.warn("no image with the provided id was found, will skip");
             detectionTask.status = DetectionTaskStatus.DONE;
-            await detectionTaskDM.updateDetectionTask(detectionTask);
-        });
+            await this.detectionTaskDM.updateDetectionTask(detectionTask);
+            return;
+        }
+
+        const regionList = await this.polypDetector.detectRegionListFromImage(image);
+        await Promise.all(
+            regionList.map(async (region) => {
+                await this.createRegion(imageId, region);
+            })
+        );
+
+        detectionTask.status = DetectionTaskStatus.DONE;
+        await this.detectionTaskDM.updateDetectionTask(detectionTask);
     }
 
     private async getImage(imageId: number): Promise<Image | null> {
