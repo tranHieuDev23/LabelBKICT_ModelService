@@ -10,7 +10,7 @@ import { IMAGE_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { Image } from "../../proto/gen/Image";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { Polygon } from "../../proto/gen/Polygon";
-import { LOGGER_TOKEN, promisifyGRPCCall } from "../../utils";
+import { LOGGER_TOKEN, TIMER_TOKEN, Timer, promisifyGRPCCall } from "../../utils";
 import {
     PolypDetectionServiceDetector,
     POLYP_DETECTION_SERVICE_DETECTOR_TOKEN,
@@ -24,6 +24,7 @@ export class DetectionTaskNotFound extends Error {
 
 export interface DetectOperator {
     processDetectionTask(detectionTaskId: number): Promise<void>;
+    processRequestedDetectionTasks(): Promise<void>;
 }
 
 export class DetectOperatorImpl implements DetectOperator {
@@ -31,6 +32,7 @@ export class DetectOperatorImpl implements DetectOperator {
         private readonly detectionTaskDM: DetectionTaskDataAccessor,
         private readonly imageServiceDM: ImageServiceClient,
         private readonly polypDetector: PolypDetectionServiceDetector,
+        private readonly timer: Timer,
         private readonly logger: Logger
     ) {}
 
@@ -112,6 +114,22 @@ export class DetectOperatorImpl implements DetectOperator {
             throw createRegionError;
         }
     }
+
+    public async processRequestedDetectionTasks(): Promise<void> {
+        const currentTime = this.timer.getCurrentTime();
+        const requestedDetectionTaskIdList =
+            await this.detectionTaskDM.getRequestedDetectionTaskIdListWithUpdateTimeBeforeThreshold(currentTime);
+        this.logger.info("found pending requested detection task", { count: requestedDetectionTaskIdList.length });
+
+        for (const id of requestedDetectionTaskIdList) {
+            try {
+                this.logger.info("processing requested detection task", { id });
+                await this.processDetectionTask(id);
+            } catch (error) {
+                this.logger.error("failed to process requested detection task", { id, error });
+            }
+        }
+    }
 }
 
 injected(
@@ -119,6 +137,7 @@ injected(
     DETECTION_TASK_DATA_ACCESSOR_TOKEN,
     IMAGE_SERVICE_DM_TOKEN,
     POLYP_DETECTION_SERVICE_DETECTOR_TOKEN,
+    TIMER_TOKEN,
     LOGGER_TOKEN
 );
 

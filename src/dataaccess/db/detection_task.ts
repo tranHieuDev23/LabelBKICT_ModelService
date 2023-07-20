@@ -48,6 +48,7 @@ export interface DetectionTaskDataAccessor {
     countRequestedAndProcessingDetectionTaskOfImageId(ofImageId: number): Promise<number>;
     updateDetectionTask(detectionTask: DetectionTask): Promise<void>;
     updateProcessingDetectionTaskWithUpdateTimeBeforeThresholdToRequested(threshold: number): Promise<void>;
+    getRequestedDetectionTaskIdListWithUpdateTimeBeforeThreshold(threshold: number): Promise<number[]>;
     withTransaction<T>(executeFunc: (dm: DetectionTaskDataAccessor) => Promise<T>): Promise<T>;
 }
 
@@ -246,6 +247,24 @@ export class DetectionTaskDataAccessorImpl implements DetectionTaskDataAccessor 
                 "failed to update detection task with updated time before threshold to requested status",
                 { threshold, error }
             );
+            throw ErrorWithStatus.wrapWithStatus(error, status.INTERNAL);
+        }
+    }
+
+    public async getRequestedDetectionTaskIdListWithUpdateTimeBeforeThreshold(threshold: number): Promise<number[]> {
+        try {
+            const rows = await this.knex
+                .select()
+                .from(TabNameModelServiceDetectionTask)
+                .where(ColNameModelServiceDetectionTaskStatus, "=", DetectionTaskStatus.REQUESTED)
+                .andWhere(ColNameModelServiceDetectionTaskUpdateTime, "<", threshold);
+            const ids = rows.map((row) => +row[ColNameModelServiceDetectionTaskDetectionTaskId]);
+            return ids;
+        } catch (error) {
+            this.logger.error("failed to get ids of requested detection task with update time before threshold", {
+                threshold,
+                error,
+            });
             throw ErrorWithStatus.wrapWithStatus(error, status.INTERNAL);
         }
     }

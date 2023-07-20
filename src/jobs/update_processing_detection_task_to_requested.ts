@@ -12,7 +12,7 @@ export class UpdateProcessingDetectionTaskToRequestedJobImpl implements UpdatePr
     constructor(private readonly detectionTaskManagementOperator: DetectionTaskManagementOperator) {}
 
     public async execute(): Promise<void> {
-        this.detectionTaskManagementOperator.updateProcessingDetectionTaskWithUpdateTimeBeforeThresholdToRequested();
+        await this.detectionTaskManagementOperator.updateProcessingDetectionTaskWithUpdateTimeBeforeThresholdToRequested();
     }
 }
 
