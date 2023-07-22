@@ -15,6 +15,7 @@ import {
     PolypDetectionServiceDetector,
     POLYP_DETECTION_SERVICE_DETECTOR_TOKEN,
 } from "./polyp_detection_service_detector";
+import { _ImageStatus_Values } from "../../proto/gen/ImageStatus";
 
 export class DetectionTaskNotFound extends Error {
     constructor() {
@@ -58,6 +59,14 @@ export class DetectOperatorImpl implements DetectOperator {
             this.logger.warn("no image with the provided id was found, will skip");
             detectionTask.status = DetectionTaskStatus.DONE;
             await this.detectionTaskDM.updateDetectionTask(detectionTask);
+            return;
+        }
+
+        if (image.status !== _ImageStatus_Values.UPLOADED) {
+            this.logger.info("image is not in uploaded status, will skip", {
+                detectionTaskId,
+                imageId: image.id,
+            });
             return;
         }
 
