@@ -12,10 +12,15 @@ import {
     ClassificationTaskDataAccessorImpl,
     CLASSIFICATION_TASK_DATA_ACCESSOR_TOKEN 
 } from "./classification_task";
+import {
+    ClassificationTypeDataAccessorImpl,
+    CLASSIFICATION_TYPE_DATA_ACCESSOR_TOKEN
+} from "./classification_type";
 
 export * from "./detection_task";
 export * from "./classification_task";
 export * from "./classification_result"
+export * from "./classification_type";
 
 export function bindToContainer(container: Container): void {
     container
@@ -33,5 +38,9 @@ export function bindToContainer(container: Container): void {
     container
         .bind(CLASSIFICATION_RESULT_DATA_ACCESSOR_TOKEN)
         .toInstance(ClassificationResultDataAccessorImpl)
+        .inSingletonScope();
+    container
+        .bind(CLASSIFICATION_TYPE_DATA_ACCESSOR_TOKEN)
+        .toInstance(ClassificationTypeDataAccessorImpl)
         .inSingletonScope();
 }

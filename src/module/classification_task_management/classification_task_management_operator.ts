@@ -9,11 +9,11 @@ import { ErrorWithStatus, LOGGER_TOKEN, Timer, TIMER_TOKEN } from "../../utils";
 export interface ClassificationTaskManagementOperator {
   createClassificationTask(
     imageId: number,
-    clasificationType: ClassificationType
+    clasificationTypeId: number
   ): Promise<void>;
   createClassificationTaskBatch(
     imageIdList: number[],
-    clasificationType: ClassificationType
+    clasificationTypeId: number
   ): Promise<void>;
 }
 
@@ -27,7 +27,7 @@ export class ClassificationTaskManagementOperatorImpl implements ClassificationT
 
   public async createClassificationTask(
     imageId: number,
-    clasificationType: ClassificationType
+    clasificationTypeId: number
   ): Promise<void> {
     const requestTime = this.timer.getCurrentTime();
     const requestedTaskCount =
@@ -46,21 +46,21 @@ export class ClassificationTaskManagementOperatorImpl implements ClassificationT
     }
     const taskID = await this.classificationTaskDM.createClassificationTask(
         imageId,
-        clasificationType,
+        clasificationTypeId,
         requestTime,
         ClassificationTaskStatus.REQUESTED
     );
     await this.classificationTaskCreatedProducer.createClassificationTaskCreatedMessage(
-        new ClassificationTaskCreated(taskID, clasificationType)
+        new ClassificationTaskCreated(taskID, clasificationTypeId)
     );
   }
 
   public async createClassificationTaskBatch(
     imageIdList: number[],
-    clasificationType: ClassificationType
+    clasificationTypeId: number
   ): Promise<void> {
       await Promise.all(
-        imageIdList.map((imageId) => this.createClassificationTask(imageId, clasificationType))
+        imageIdList.map((imageId) => this.createClassificationTask(imageId, clasificationTypeId))
       );
   }
 }

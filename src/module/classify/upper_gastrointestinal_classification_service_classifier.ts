@@ -1,13 +1,9 @@
 import { injected, token } from "brandi";
 import sharp from "sharp";
 import { Logger } from "winston";
-import {
-    ClassificationResultDataAccessor,
-    CLASSIFICATION_RESULT_DATA_ACCESSOR_TOKEN
-} from "../../dataaccess/db";
 import { POLYP_DETECTION_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { BucketDM, ORIGINAL_IMAGE_S3_DM_TOKEN } from "../../dataaccess/s3";
-import { ClassificationType, _ClassificationType_Values } from "../../proto/gen/ClassificationType";
+import { ClassificationType } from "../../proto/gen/ClassificationType";
 import { _com_vdsense_polypnet_proto_AnatomicalSite_Values } from "../../proto/gen/com/vdsense/polypnet/proto/AnatomicalSite";
 import { _com_vdsense_polypnet_proto_LesionType_Values } from "../../proto/gen/com/vdsense/polypnet/proto/LesionType";
 import { PolypDetectionRequest } from "../../proto/gen/com/vdsense/polypnet/proto/PolypDetectionRequest";
@@ -24,6 +20,12 @@ import {
     HP_STATUS_PROTO_TO_HP_STATUS_CONVERTER_TOKEN
 } from "../schemas/converters";
 
+enum ClassificationTypeDisplayName {
+    ANATOMICAL_SITE = "Anatomical site",
+    LESION_TYPE = "Lesion",
+    HP_STATUS = "HP",
+}
+
 export interface UpperGastrointestinalClassificationServiceClassifier {
     upperGastrointestinalClassificationFromImage(
         image: Image,
@@ -35,7 +37,6 @@ export class UpperGastrointestinalClassificationServiceClassifierImpl
     implements UpperGastrointestinalClassificationServiceClassifier {
     constructor(
         private readonly polypDetectionServiceDM: PolypDetectionServiceClient,
-        private readonly classificationResultDM: ClassificationResultDataAccessor,
         private readonly anatomicalSiteProtoToAnatomicalSiteConverter: AnatomicalSiteProtoToAnatomicalSiteConverter,
         private readonly lesionTypeProtoToLesionTypeConverter: LesionTypeProtoToLesionTypeConverter,
         private readonly hpStatusProtoToHpStatusConverter: HpStatusProtoToHpStatusConverter,
@@ -69,10 +70,12 @@ export class UpperGastrointestinalClassificationServiceClassifierImpl
             });
             throw new Error("image does not have id");
         }
+
         let { anatomicalSite, lesionType, hpStatus } = polypDetectResponse;
-        if (classificationType === _ClassificationType_Values.ANATOMICAL_SITE)
+        
+        if (classificationType.displayName === ClassificationTypeDisplayName.ANATOMICAL_SITE)
             return this.anatomicalSiteProtoToAnatomicalSiteConverter.convert(anatomicalSite as any);
-        else if (classificationType === _ClassificationType_Values.LESION_TYPE)
+        else if (classificationType.displayName === ClassificationTypeDisplayName.LESION_TYPE)
             return this.lesionTypeProtoToLesionTypeConverter.convert(lesionType as any);
         else return this.hpStatusProtoToHpStatusConverter.convert(hpStatus as any);
     }
@@ -108,7 +111,6 @@ export class UpperGastrointestinalClassificationServiceClassifierImpl
 injected(
     UpperGastrointestinalClassificationServiceClassifierImpl,
     POLYP_DETECTION_SERVICE_DM_TOKEN,
-    CLASSIFICATION_RESULT_DATA_ACCESSOR_TOKEN,
     ANATOMICAL_SITE_PROTO_TO_ANATOMICAL_SITE_CONVERTER_TOKEN,
     LESION_TYPE_PROTO_TO_LESION_TYPE_CONVERTER_TOKEN,
     HP_STATUS_PROTO_TO_HP_STATUS_CONVERTER_TOKEN,

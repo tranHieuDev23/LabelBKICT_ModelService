@@ -5,6 +5,7 @@ import * as classify from "./classify";
 import * as classificationTaskManagement from "./classification_task_management";
 import * as converters from "./schemas/converters"
 import * as mappings from "./schemas/mappings";
+import * as classificationTypeManagement from "./classification_type_management";
 
 export function bindToContainer(container: Container): void {
     mappings.bindToContainer(container);
@@ -13,4 +14,5 @@ export function bindToContainer(container: Container): void {
     detectionTaskManagement.bindToContainer(container);
     classify.bindToContainer(container);
     classificationTaskManagement.bindToContainer(container);
+    classificationTypeManagement.bindToContainer(container)
 }

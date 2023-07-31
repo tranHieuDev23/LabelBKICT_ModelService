@@ -16,16 +16,15 @@ export enum AnatomicalSite {
   LESSER_CURVATURE = 7,
   DUODENUM_BULB = 8,
   DUODENUM = 9,
-  UNQUALIFIER = 10,
 }
 
 export enum LesionType {
-  REFLUX_ESOPHAGITIS = 0,
+  NON_LESION = 0,
   ESOPHAGEAL_CANCER = 1,
-  GASTRITIS = 2,
-  STOMACH_CANCER = 3,
-  DUODENAL_ULCER = 4,
-  NON_LESION = 5,
+  REFLUX_ESOPHAGITIS = 2,
+  DUODENAL_ULCER = 3,
+  STOMACH_CANCER = 4,
+  GASTRITIS = 5,
 }
 
 export enum HpStatus {

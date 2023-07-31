@@ -34,7 +34,7 @@ export class AnatomicalSiteProtoToAnatomicalSiteConverterImpl
             case _com_vdsense_polypnet_proto_AnatomicalSite_Values[9]:
                 return AnatomicalSite[9];
             default:
-                return AnatomicalSite[10];
+                return "";
         }
     }
 }

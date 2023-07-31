@@ -9,12 +9,11 @@ import {
     LOGGER_TOKEN,
 } from "../../../utils";
 import { KAFKA_PRODUCER_TOKEN } from "./producer";
-import { ClassificationType } from "../../../proto/gen/ClassificationType";
 
 export class ClassificationTaskCreated {
     constructor(
         public classificationTaskId: number,
-        public classificationType: ClassificationType    
+        public classificationTypeId: number    
     ) {}
 }
 

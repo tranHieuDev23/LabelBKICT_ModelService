@@ -10,6 +10,7 @@ import {
 } from "../module/detection_task_management";
 import { Image } from "../proto/gen/Image";
 import { LOGGER_TOKEN } from "../utils";
+import { ClassificationType } from "../dataaccess/db";
 
 export class ImageCreated {
     constructor(public image: Image) {}
@@ -38,7 +39,13 @@ export class ImageCreatedMessageHandlerImpl
             return;
         }
         await this.detectionTaskManagementOperator.createDetectionTask(imageId);
-        // await this.classificationTaskManagementOperator.createClassificationTask(imageId);
+        // TODO: call classificationTypeOperator to get list of classification types
+        const classificationTypeList: ClassificationType[] = [];
+        await Promise.all(
+            classificationTypeList.map(
+                (classificationType) => this.classificationTaskManagementOperator.createClassificationTask(imageId, classificationType.classificationTypeId)
+            )
+        );
     }
 }
 

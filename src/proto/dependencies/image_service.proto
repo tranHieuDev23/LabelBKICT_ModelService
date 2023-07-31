@@ -23,6 +23,10 @@ service ImageService {
     rpc AddImageTypeToImageTagGroup(AddImageTypeToImageTagGroupRequest) returns (AddImageTypeToImageTagGroupResponse) {}
     rpc RemoveImageTypeFromImageTagGroup(RemoveImageTypeFromImageTagGroupRequest) returns (RemoveImageTypeFromImageTagGroupResponse) {}
     rpc GetImageTagGroupListOfImageType(GetImageTagGroupListOfImageTypeRequest) returns (GetImageTagGroupListOfImageTypeResponse) {}
+    rpc GetImageTagGroupListOfImageTypeList(GetImageTagGroupListOfImageTypeListRequest) returns (GetImageTagGroupListOfImageTypeListResponse) {}
+
+    rpc AddClassificationTypeToImageTagGroup(AddClassificationTypeToImageTagGroupRequest) returns (AddClassificationTypeToImageTagGroupResponse) {}
+    rpc RemoveClassificationTypeFromImageTagGroup(RemoveClassificationTypeFromImageTagGroupRequest) returns (RemoveClassificationTypeFromImageTagGroupResponse) {}
 
     rpc CreateImage(CreateImageRequest) returns (CreateImageResponse) {}
     rpc GetImage(GetImageRequest) returns (GetImageResponse) {}
@@ -36,6 +40,7 @@ service ImageService {
     rpc DeleteImageList(DeleteImageListRequest) returns (DeleteImageListResponse) {}
 
     rpc AddImageTagToImage(AddImageTagToImageRequest) returns (AddImageTagToImageResponse) {}
+    rpc AddImageTagListToImageList(AddImageTagListToImageListRequest) returns (AddImageTagListToImageListResponse) {}
     rpc RemoveImageTagFromImage(RemoveImageTagFromImageRequest) returns (RemoveImageTagFromImageResponse) {}
 
     rpc CreateRegion(CreateRegionRequest) returns (CreateRegionResponse) {}
@@ -43,11 +48,35 @@ service ImageService {
     rpc UpdateRegionBoundary(UpdateRegionBoundaryRequest) returns (UpdateRegionBoundaryResponse) {}
     rpc UpdateRegionRegionLabel(UpdateRegionRegionLabelRequest) returns (UpdateRegionRegionLabelResponse) {}
     rpc DeleteRegion(DeleteRegionRequest) returns (DeleteRegionResponse) {}
+    rpc DeleteRegionOfImage(DeleteRegionOfImageRequest) returns (DeleteRegionOfImageResponse) {}
 
     rpc GetRegionSnapshotListOfImage(GetRegionSnapshotListOfImageRequest) returns (GetRegionSnapshotListOfImageResponse) {}
+
+    rpc CreateImageBookmark(CreateImageBookmarkRequest) returns (CreateImageBookmarkResponse) {}
+    rpc GetImageBookmark(GetImageBookmarkRequest) returns (GetImageBookmarkResponse) {}
+    rpc UpdateImageBookmark(UpdateImageBookmarkRequest) returns (UpdateImageBookmarkResponse) {}
+    rpc DeleteImageBookmark(DeleteImageBookmarkRequest) returns (DeleteImageBookmarkResponse) {}
+
+    rpc CreateUserCanManageUserImage(CreateUserCanManageUserImageRequest) returns (CreateUserCanManageUserImageResponse) {}
+    rpc GetUserCanManageUserImageOfUserId(GetUserCanManageUserImageOfUserIdRequest) returns (GetUserCanManageUserImageOfUserIdResponse) {}
+    rpc UpdateUserCanManageUserImage(UpdateUserCanManageUserImageRequest) returns (UpdateUserCanManageUserImageResponse) {}
+    rpc DeleteUserCanManageUserImage(DeleteUserCanManageUserImageRequest) returns (DeleteUserCanManageUserImageResponse) {}
+
+    rpc CreateUserCanVerifyUserImage(CreateUserCanVerifyUserImageRequest) returns (CreateUserCanVerifyUserImageResponse) {}
+    rpc GetUserCanVerifyUserImageOfUserId(GetUserCanVerifyUserImageOfUserIdRequest) returns (GetUserCanVerifyUserImageOfUserIdResponse) {}
+    rpc DeleteUserCanVerifyUserImage(DeleteUserCanVerifyUserImageRequest) returns (DeleteUserCanVerifyUserImageResponse) {}
 }
 
 // Business objects
+message ClassificationType {
+    uint32 classification_type_id = 1;
+    string display_name = 2;
+}
+
+message ClassificationTypeList {
+    repeated ClassificationType classification_type_list = 1;
+}
+
 message ImageType {
     uint32 id = 1;
     string display_name = 2;
@@ -106,6 +135,11 @@ message Image {
     string description = 11;
     ImageType image_type = 12;
     ImageStatus.Values status = 13;
+}
+
+message ImageTagGroupAndTagList {
+    repeated ImageTagGroup image_tag_group_list = 1;
+    repeated ImageTagList image_tag_list_of_image_tag_group_list = 2;
 }
 
 message Vertex {
@@ -172,22 +206,39 @@ message ImageListSortOrder {
 }
 
 message ImageListFilterOptions {
-    repeated uint32 image_type_id_list = 1;
-    repeated uint32 image_tag_id_list = 2;
-    repeated uint32 region_label_id_list = 3;
-    repeated uint32 uploaded_by_user_id_list = 4;
-    repeated uint32 published_by_user_id_list = 5;
-    repeated uint32 verified_by_user_id_list = 6;
-    uint64 upload_time_start = 7;
-    uint64 upload_time_end = 8;
-    uint64 publish_time_start = 9;
-    uint64 publish_time_end = 10;
-    uint64 verify_time_start = 11;
-    uint64 verify_time_end = 12;
-    string original_file_name_query = 13;
-    repeated uint32 image_status_list = 14;
-    bool must_match_all_image_tags = 15;
-    bool must_match_all_region_labels = 16;
+    repeated uint32 image_id_list = 1;
+    repeated uint32 image_type_id_list = 2;
+    repeated uint32 image_tag_id_list = 3;
+    repeated uint32 region_label_id_list = 4;
+    repeated uint32 uploaded_by_user_id_list = 5;
+    repeated uint32 published_by_user_id_list = 6;
+    repeated uint32 verified_by_user_id_list = 7;
+    uint64 upload_time_start = 8;
+    uint64 upload_time_end = 9;
+    uint64 publish_time_start = 10;
+    uint64 publish_time_end = 11;
+    uint64 verify_time_start = 12;
+    uint64 verify_time_end = 13;
+    string original_file_name_query = 14;
+    repeated uint32 image_status_list = 15;
+    bool must_match_all_image_tags = 16;
+    bool must_match_all_region_labels = 17;
+    repeated uint32 bookmarked_by_user_id_list = 18;
+    bool must_have_description = 19;
+    repeated uint32 not_uploaded_by_user_id_list = 20;
+}
+
+message ImageBookmark {
+    string description = 1;
+}
+
+message UserCanManageUserImage {
+    uint32 image_of_user_id = 1;
+    bool can_edit = 2;
+}
+
+message UserCanVerifyUserImage {
+    uint32 image_of_user_id = 1;
 }
 
 // Request and response bodies of API calls
@@ -274,12 +325,14 @@ message CreateImageTagGroupResponse {
 message GetImageTagGroupListRequest {
     bool with_image_tag = 1;
     bool with_image_type = 2;
+    bool with_classification_type = 3;
 }
 
 message GetImageTagGroupListResponse {
     repeated ImageTagGroup image_tag_group_list = 1;
     repeated ImageTagList image_tag_list_of_image_tag_group_list = 2;
     repeated ImageTypeList image_type_list_of_image_tag_group_list = 3;
+    repeated ClassificationTypeList classification_type_list_of_image_tag_group_list = 4;
 }
 
 message UpdateImageTagGroupRequest {
@@ -346,6 +399,28 @@ message GetImageTagGroupListOfImageTypeResponse {
     repeated ImageTagGroup image_tag_group_list = 1;
     repeated ImageTagList image_tag_list_of_image_tag_group_list = 2;
 }
+
+message GetImageTagGroupListOfImageTypeListRequest {
+    repeated uint32 image_type_id_list = 1;
+}
+
+message GetImageTagGroupListOfImageTypeListResponse {
+    repeated ImageTagGroupAndTagList image_tag_group_and_tag_list = 1;
+}
+
+message AddClassificationTypeToImageTagGroupRequest {
+    uint32 image_tag_group_id = 1;
+    uint32 classification_type_id = 2;
+}
+
+message AddClassificationTypeToImageTagGroupResponse {}
+
+message RemoveClassificationTypeFromImageTagGroupRequest {
+    uint32 image_tag_group_id = 1;
+    uint32 classification_type_id = 2;
+}
+
+message RemoveClassificationTypeFromImageTagGroupResponse {}
 
 message CreateImageRequest {
     uint32 uploaded_by_user_id = 1;
@@ -455,6 +530,13 @@ message AddImageTagToImageRequest {
 
 message AddImageTagToImageResponse {}
 
+message AddImageTagListToImageListRequest {
+    repeated uint32 image_id_list = 1;
+    repeated uint32 image_tag_id_list = 2;
+}
+
+message AddImageTagListToImageListResponse {}
+
 message RemoveImageTagFromImageRequest {
     uint32 image_id = 1;
     uint32 image_tag_id = 2;
@@ -514,6 +596,12 @@ message DeleteRegionRequest {
 
 message DeleteRegionResponse {}
 
+message DeleteRegionOfImageRequest {
+    uint32 of_image_id = 1;
+}
+
+message DeleteRegionOfImageResponse {}
+
 message GetRegionSnapshotListOfImageRequest {
     uint32 of_image_id = 1;
     uint32 at_status = 2;
@@ -522,3 +610,98 @@ message GetRegionSnapshotListOfImageRequest {
 message GetRegionSnapshotListOfImageResponse {
     repeated Region region_list = 1;
 }
+
+message CreateImageBookmarkRequest {
+    uint32 user_id = 1;
+    uint32 image_id = 2;
+    string description = 3;
+}
+
+message CreateImageBookmarkResponse {
+    ImageBookmark image_bookmark = 1;
+}
+
+message GetImageBookmarkRequest {
+    uint32 user_id = 1;
+    uint32 image_id = 2;
+}
+
+message GetImageBookmarkResponse {
+    ImageBookmark image_bookmark = 1;
+}
+
+message UpdateImageBookmarkRequest {
+    uint32 user_id = 1;
+    uint32 image_id = 2;
+    string description = 3;
+}
+
+message UpdateImageBookmarkResponse {
+    ImageBookmark image_bookmark = 1;
+}
+
+message DeleteImageBookmarkRequest {
+    uint32 user_id = 1;
+    uint32 image_id = 2;
+}
+
+message DeleteImageBookmarkResponse {}
+
+message CreateUserCanManageUserImageRequest {
+    uint32 user_id = 1;
+    uint32 image_of_user_id = 2;
+    bool can_edit = 3;
+}
+
+message CreateUserCanManageUserImageResponse {}
+
+message GetUserCanManageUserImageOfUserIdRequest {
+    uint32 user_id = 1;
+    uint32 offset = 2;
+    uint32 limit = 3;
+}
+
+message GetUserCanManageUserImageOfUserIdResponse {
+    uint32 total_user_count = 1;
+    repeated UserCanManageUserImage user_list = 2;
+}
+
+message UpdateUserCanManageUserImageRequest {
+    uint32 user_id = 1;
+    uint32 image_of_user_id = 2;
+    bool can_edit = 3;
+}
+
+message UpdateUserCanManageUserImageResponse {}
+
+message DeleteUserCanManageUserImageRequest {
+    uint32 user_id = 1;
+    uint32 image_of_user_id = 2;
+}
+
+message DeleteUserCanManageUserImageResponse {}
+
+message CreateUserCanVerifyUserImageRequest {
+    uint32 user_id = 1;
+    uint32 image_of_user_id = 2;
+}
+
+message CreateUserCanVerifyUserImageResponse {}
+
+message GetUserCanVerifyUserImageOfUserIdRequest {
+    uint32 user_id = 1;
+    uint32 offset = 2;
+    uint32 limit = 3;
+}
+
+message GetUserCanVerifyUserImageOfUserIdResponse {
+    uint32 total_user_count = 1;
+    repeated UserCanVerifyUserImage user_list = 2;
+}
+
+message DeleteUserCanVerifyUserImageRequest {
+    uint32 user_id = 1;
+    uint32 image_of_user_id = 2;
+}
+
+message DeleteUserCanVerifyUserImageResponse {}
