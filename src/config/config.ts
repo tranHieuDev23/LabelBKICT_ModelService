@@ -8,7 +8,7 @@ import { ImageServiceConfig } from "./image_service";
 import { KafkaConfig } from "./kafka";
 import { LogConfig } from "./log";
 import { PolypDetectionServiceConfig } from "./polyp_detect_service";
-// import { ElasticsearchConfig } from "./elasticsearch";
+import { ElasticsearchConfig } from "./elasticsearch";
 import { S3Config } from "./s3";
 
 export class ModelServiceConfig {
@@ -21,7 +21,7 @@ export class ModelServiceConfig {
     public esophagusDetectionServiceConfig = new EsophagusDetectionServiceConfig();
     public grpcServerConfig = new GRPCServerConfig();
     public distributedConfig = new DistributedConfig();
-    // public elasticsearchConfig = new ElasticsearchConfig();
+    public elasticsearchConfig = new ElasticsearchConfig();
     public applicationConfig = new ApplicationConfig();
 
     public static fromEnv(): ModelServiceConfig {
@@ -35,7 +35,7 @@ export class ModelServiceConfig {
         config.esophagusDetectionServiceConfig = EsophagusDetectionServiceConfig.fromEnv();
         config.grpcServerConfig = GRPCServerConfig.fromEnv();
         config.distributedConfig = DistributedConfig.fromEnv();
-        // config.elasticsearchConfig = ElasticsearchConfig.fromEnv();
+        config.elasticsearchConfig = ElasticsearchConfig.fromEnv();
         config.applicationConfig = ApplicationConfig.fromEnv();
         return config;
     }
