@@ -29,8 +29,8 @@ export class MessageConsumer {
             });
         }
         await this.consumer.run({
-            eachBatch: async ({ batch, heartbeat }) => {
-                const handler = topicToHandlerMap.get(batch.topic);
+            eachMessage: async ({ topic, message, heartbeat }) => {
+                const handler = topicToHandlerMap.get(topic);
                 if (handler === undefined) {
                     return;
                 }
@@ -41,9 +41,9 @@ export class MessageConsumer {
                 );
 
                 try {
-                    await Promise.all(batch.messages.map((message) => handler(message.value)));
+                    handler(message.value);
                 } catch (error) {
-                    this.logger.error("failed to handle message", { topic: batch.topic, error });
+                    this.logger.error("failed to handle message", { topic, message: message.value, error });
                     throw error;
                 } finally {
                     clearInterval(heartbeatInterval);

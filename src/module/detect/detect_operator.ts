@@ -10,11 +10,12 @@ import { IMAGE_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { Image } from "../../proto/gen/Image";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { Polygon } from "../../proto/gen/Polygon";
-import { LOGGER_TOKEN, promisifyGRPCCall } from "../../utils";
+import { LOGGER_TOKEN, TIMER_TOKEN, Timer, promisifyGRPCCall } from "../../utils";
 import {
     PolypDetectionServiceDetector,
     POLYP_DETECTION_SERVICE_DETECTOR_TOKEN,
 } from "./polyp_detection_service_detector";
+import { _ImageStatus_Values } from "../../proto/gen/ImageStatus";
 
 export class DetectionTaskNotFound extends Error {
     constructor() {
@@ -24,6 +25,7 @@ export class DetectionTaskNotFound extends Error {
 
 export interface DetectOperator {
     processDetectionTask(detectionTaskId: number): Promise<void>;
+    processRequestedDetectionTasks(): Promise<void>;
 }
 
 export class DetectOperatorImpl implements DetectOperator {
@@ -31,66 +33,62 @@ export class DetectOperatorImpl implements DetectOperator {
         private readonly detectionTaskDM: DetectionTaskDataAccessor,
         private readonly imageServiceDM: ImageServiceClient,
         private readonly polypDetector: PolypDetectionServiceDetector,
+        private readonly timer: Timer,
         private readonly logger: Logger
     ) {}
 
     public async processDetectionTask(detectionTaskId: number): Promise<void> {
-        await this.detectionTaskDM.withTransaction(async (detectionTaskDM) => {
-            const detectionTask =
-                await detectionTaskDM.getDetectionTaskWithXLock(
-                    detectionTaskId
-                );
-            if (detectionTask === null) {
-                this.logger.error(
-                    "no detection task with detection_task_id found",
-                    { detectionTaskId }
-                );
-                throw new DetectionTaskNotFound();
-            }
-            if (detectionTask.status === DetectionTaskStatus.DONE) {
-                this.logger.error(
-                    "detection task with detection_task_id already has status of done",
-                    { detectionTaskId }
-                );
-                return;
-            }
+        const detectionTask = await this.detectionTaskDM.getDetectionTaskWithXLock(detectionTaskId);
+        if (detectionTask === null) {
+            this.logger.error("no detection task with detection_task_id found", { detectionTaskId });
+            throw new DetectionTaskNotFound();
+        }
+        if (detectionTask.status !== DetectionTaskStatus.REQUESTED) {
+            this.logger.info("detection task with detection_task_id does not have status of requested", {
+                detectionTaskId,
+            });
+            return;
+        }
 
-            const imageId = detectionTask.ofImageId;
-            const image = await this.getImage(imageId);
-            if (image === null) {
-                this.logger.warn(
-                    "no image with the provided id was found, will skip"
-                );
-                detectionTask.status = DetectionTaskStatus.DONE;
-                await detectionTaskDM.updateDetectionTask(detectionTask);
-                return;
-            }
+        detectionTask.status = DetectionTaskStatus.PROCESSING;
+        await this.detectionTaskDM.updateDetectionTask(detectionTask);
 
-            const regionList =
-                await this.polypDetector.detectRegionListFromImage(image);
-            await Promise.all(
-                regionList.map(async (region) => {
-                    await this.createRegion(imageId, region);
-                })
-            );
-
+        const imageId = detectionTask.ofImageId;
+        const image = await this.getImage(imageId);
+        if (image === null) {
+            this.logger.warn("no image with the provided id was found, will skip");
             detectionTask.status = DetectionTaskStatus.DONE;
-            await detectionTaskDM.updateDetectionTask(detectionTask);
-        });
+            await this.detectionTaskDM.updateDetectionTask(detectionTask);
+            return;
+        }
+
+        if (image.status !== _ImageStatus_Values.UPLOADED) {
+            this.logger.info("image is not in uploaded status, will skip", {
+                detectionTaskId,
+                imageId: image.id,
+            });
+            return;
+        }
+
+        const regionList = await this.polypDetector.detectRegionListFromImage(image);
+        await Promise.all(
+            regionList.map(async (region) => {
+                await this.createRegion(imageId, region);
+            })
+        );
+
+        detectionTask.status = DetectionTaskStatus.DONE;
+        await this.detectionTaskDM.updateDetectionTask(detectionTask);
     }
 
     private async getImage(imageId: number): Promise<Image | null> {
-        const { error: getImageError, response: getImageResponse } =
-            await promisifyGRPCCall(
-                this.imageServiceDM.getImage.bind(this.imageServiceDM),
-                { id: imageId }
-            );
+        const { error: getImageError, response: getImageResponse } = await promisifyGRPCCall(
+            this.imageServiceDM.getImage.bind(this.imageServiceDM),
+            { id: imageId }
+        );
         if (getImageError !== null) {
             if (getImageError.code === status.NOT_FOUND) {
-                this.logger.warn(
-                    "called image_service.getImage(), but no image was found",
-                    { error: getImageError }
-                );
+                this.logger.warn("called image_service.getImage(), but no image was found", { error: getImageError });
                 return null;
             }
 
@@ -106,10 +104,7 @@ export class DetectOperatorImpl implements DetectOperator {
         return getImageResponse.image;
     }
 
-    private async createRegion(
-        imageId: number,
-        border: Polygon
-    ): Promise<void> {
+    private async createRegion(imageId: number, border: Polygon): Promise<void> {
         const { error: createRegionError } = await promisifyGRPCCall(
             this.imageServiceDM.createRegion.bind(this.imageServiceDM),
             {
@@ -128,6 +123,22 @@ export class DetectOperatorImpl implements DetectOperator {
             throw createRegionError;
         }
     }
+
+    public async processRequestedDetectionTasks(): Promise<void> {
+        const currentTime = this.timer.getCurrentTime();
+        const requestedDetectionTaskIdList =
+            await this.detectionTaskDM.getRequestedDetectionTaskIdListWithUpdateTimeBeforeThreshold(currentTime);
+        this.logger.info("found pending requested detection task", { count: requestedDetectionTaskIdList.length });
+
+        for (const id of requestedDetectionTaskIdList) {
+            try {
+                this.logger.info("processing requested detection task", { id });
+                await this.processDetectionTask(id);
+            } catch (error) {
+                this.logger.error("failed to process requested detection task", { id, error });
+            }
+        }
+    }
 }
 
 injected(
@@ -135,6 +146,7 @@ injected(
     DETECTION_TASK_DATA_ACCESSOR_TOKEN,
     IMAGE_SERVICE_DM_TOKEN,
     POLYP_DETECTION_SERVICE_DETECTOR_TOKEN,
+    TIMER_TOKEN,
     LOGGER_TOKEN
 );
 

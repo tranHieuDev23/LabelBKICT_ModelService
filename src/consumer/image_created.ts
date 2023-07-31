@@ -12,17 +12,19 @@ import { Image } from "../proto/gen/Image";
 import { LOGGER_TOKEN } from "../utils";
 import { ClassificationType } from "../dataaccess/db";
 
+export class ImageCreatedMetadata {
+    constructor(public readonly shouldUseDetectionModel: boolean) {}
+}
+
 export class ImageCreated {
-    constructor(public image: Image) {}
+    constructor(public readonly image: Image, public readonly metadata: ImageCreatedMetadata) {}
 }
 
 export interface ImageCreatedMessageHandler {
     onImageCreated(message: ImageCreated): Promise<void>;
 }
 
-export class ImageCreatedMessageHandlerImpl
-    implements ImageCreatedMessageHandler
-{
+export class ImageCreatedMessageHandlerImpl implements ImageCreatedMessageHandler {
     constructor(
         private readonly detectionTaskManagementOperator: DetectionTaskManagementOperator,
         private readonly classificationTaskManagementOperator: ClassificationTaskManagementOperator,
@@ -38,6 +40,13 @@ export class ImageCreatedMessageHandlerImpl
             this.logger.error("image_id is required", { payload: message });
             return;
         }
+
+        const shouldUseDetectionModel = message?.metadata.shouldUseDetectionModel;
+        if (!shouldUseDetectionModel) {
+            this.logger.info("detection model should not be used for this image", { imageId });
+            return;
+        }
+
         await this.detectionTaskManagementOperator.createDetectionTask(imageId);
         // TODO: call classificationTypeOperator to get list of classification types
         const classificationTypeList: ClassificationType[] = [];
@@ -56,5 +65,4 @@ injected(
     LOGGER_TOKEN
 );
 
-export const IMAGE_CREATED_MESSAGE_HANDLER_TOKEN =
-    token<ImageCreatedMessageHandler>("ImageCreatedMessageHandler");
+export const IMAGE_CREATED_MESSAGE_HANDLER_TOKEN = token<ImageCreatedMessageHandler>("ImageCreatedMessageHandler");
