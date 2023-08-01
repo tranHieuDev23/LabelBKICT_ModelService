@@ -62,7 +62,7 @@ export class DetectOperatorImpl implements DetectOperator {
             return;
         }
 
-        if (image.status !== _ImageStatus_Values.UPLOADED) {
+        if (image.status !== _ImageStatus_Values.UPLOADED && image.status !== "UPLOADED") {
             this.logger.info("image is not in uploaded status, will skip", {
                 detectionTaskId,
                 imageId: image.id,
