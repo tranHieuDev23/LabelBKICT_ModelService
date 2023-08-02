@@ -21,6 +21,19 @@ export class ClassificationTask {
   ) {}
 }
 
+export class ClassificationTaskListFilterOptions {
+  public ofImageIdList: number[] = [];
+  public ofClassificationTypeIdList: number[] = [];
+  public statusList: ClassificationTaskStatus[] = [];
+}
+
+export enum ClassificationTaskListSortOrder {
+  ID_ASCENDING = 0,
+  ID_DESCENDING = 1,
+  REQUEST_TIME_ASCENDING = 2,
+  REQUEST_TIME_DESCENDING = 3
+}
+
 export interface ClassificationTaskDataAccessor {
   createClassificationTask(
     ofImageId: number,
@@ -37,6 +50,13 @@ export interface ClassificationTaskDataAccessor {
   updateClassificationTask(
     classificationTask: ClassificationTask
   ): Promise<void>;
+  countClassificationTask(filterOptions: ClassificationTaskListFilterOptions): Promise<number>;
+  getClassificationTaskList(
+    offset: number,
+    limit: number,
+    filterOptions: ClassificationTaskListFilterOptions,
+    sortOrder: ClassificationTaskListSortOrder
+  ): Promise<ClassificationTask[]>
   withTransaction<T>(
     executeFunc: (dm: ClassificationTaskDataAccessor) => Promise<T>
   ): Promise<T>;
@@ -169,6 +189,72 @@ export class ClassificationTaskDataAccessorImpl
         error,
       });
       throw ErrorWithStatus.wrapWithStatus(error, status.INTERNAL);
+    }
+  }
+
+  public async countClassificationTask(filterOptions: ClassificationTaskListFilterOptions): Promise<number> {
+    try {
+      let queryBuilder = this.knex.count().from(TabNameModelServiceClassificationTask);
+      queryBuilder = queryBuilder.where((qb) => {
+          return this.getClassificationTaskListFilterOptionsWhereClause(qb, filterOptions);
+      });
+      const rows = (await queryBuilder) as any[];
+      return +rows[0]["count"];
+  } catch (error) {
+      this.logger.error("failed to get classification task count", { filterOptions, error });
+      throw ErrorWithStatus.wrapWithStatus(error, status.INTERNAL);
+  }
+  }
+
+  public async getClassificationTaskList(
+    offset: number,
+    limit: number,
+    filterOptions: ClassificationTaskListFilterOptions,
+    sortOrder: ClassificationTaskListSortOrder
+  ): Promise<ClassificationTask[]> {
+    try {
+      let queryBuilder = this.knex
+        .select()
+        .from(TabNameModelServiceClassificationTask)
+        .offset(offset)
+        .limit(limit);
+      queryBuilder = this.applyClassificationTaskListOrderByClause(queryBuilder, sortOrder);
+      queryBuilder = queryBuilder.where((qb) => {
+        return this.getClassificationTaskListFilterOptionsWhereClause(qb, filterOptions);
+      });
+      const rows = await queryBuilder;
+      return rows.map((row) => this.getClassificationTaskFromRow(row));
+    } catch (error) {
+      this.logger.error("failed to get classification task list", { offset, limit, filterOptions, sortOrder, error });
+      throw ErrorWithStatus.wrapWithStatus(error, status.INTERNAL);
+    }
+  }
+
+  private getClassificationTaskListFilterOptionsWhereClause(
+    qb: Knex.QueryBuilder,
+    filterOptions: ClassificationTaskListFilterOptions
+  ): Knex.QueryBuilder {
+    qb = qb.whereIn(ColNameModelServiceClassificationTaskOfImageId, filterOptions.ofImageIdList)
+    qb = qb.whereIn(ColNameModelServiceClassificationTaskOfClassificationTypeId, filterOptions.ofClassificationTypeIdList);
+    qb = qb.whereIn(ColNameModelServiceClassificationTaskStatus, filterOptions.statusList);
+    return qb;
+  }
+
+  private applyClassificationTaskListOrderByClause(
+    qb: Knex.QueryBuilder,
+    sortOrder: ClassificationTaskListSortOrder
+  ): Knex.QueryBuilder {
+    switch (sortOrder) {
+      case ClassificationTaskListSortOrder.ID_ASCENDING:
+        return qb.orderBy(ColNameModelServiceClassificationTaskClassificationTaskId, "asc");
+      case ClassificationTaskListSortOrder.ID_DESCENDING:
+        return qb.orderBy(ColNameModelServiceClassificationTaskClassificationTaskId, "desc");
+      case ClassificationTaskListSortOrder.REQUEST_TIME_ASCENDING:
+        return qb.orderBy(ColNameModelServiceClassificationTaskRequestTime, "asc");
+      case ClassificationTaskListSortOrder.REQUEST_TIME_DESCENDING:
+        return qb.orderBy(ColNameModelServiceClassificationTaskRequestTime, "desc");
+      default:
+        throw new ErrorWithStatus("invalid classification task list sort order", status.INVALID_ARGUMENT)
     }
   }
 

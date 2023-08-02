@@ -17,9 +17,12 @@ import {
 import { GetClassificationTypeByDisplayNameRequest__Output } from "../proto/gen/GetClassificationTypeByDisplayNameRequest";
 import { GetClassificationTypeByDisplayNameResponse } from "../proto/gen/GetClassificationTypeByDisplayNameResponse";
 import { _DetectionTaskListSortOrder_Values } from "../proto/gen/DetectionTaskListSortOrder";
+import { _ClassificationTaskListSortOrder_Values } from "../proto/gen/ClassificationTaskListSortOrder";
 
 const GET_DETECTION_TASK_LIST_DEFAULT_OFFSET = 0;
 const GET_DETECTION_TASK_LIST_DEFAULT_LIMIT = 10;
+const GET_CLASSIFICATION_TASK_LIST_DEFAULT_OFFSET = 0;
+const GET_CLASSIFICATION_TASK_LIST_DEFAULT_LIMIT = 10;
 
 export class ModelServiceHandlersFactory {
     constructor(
@@ -148,6 +151,51 @@ export class ModelServiceHandlersFactory {
                         detectionTaskList,
                         totalDetectionTaskCount,
                     });
+                } catch (e) {
+                    this.handleError(e, callback);
+                }
+            },
+
+            GetClassificationTaskList: async (call, callback) => {
+                const req = call.request;
+                if (req.ofImageIdList === undefined) {
+                    return callback({
+                        message: "of_image_id_list is required)",
+                        code: status.INVALID_ARGUMENT,
+                    });
+                }
+                if (req.ofClassificationTypeIdList === undefined) {
+                    return callback({
+                        message: "of_classification_type_id_list is required)",
+                        code: status.INVALID_ARGUMENT,
+                    });
+                }
+                if (req.statusList === undefined) {
+                    return callback({
+                        message: "status_list is required)",
+                        code: status.INVALID_ARGUMENT,
+                    });
+                }
+
+                const offset = req.offset || GET_CLASSIFICATION_TASK_LIST_DEFAULT_OFFSET;
+                const limit = req.limit || GET_CLASSIFICATION_TASK_LIST_DEFAULT_LIMIT;
+                const sortOrder = req.sortOrder || _ClassificationTaskListSortOrder_Values.ID_DESCENDING;
+
+                try {
+                    const { totalClassificationTaskCount, classificationTaskList } =
+                        await this.classificationTaskManagementOperator.getClassificationTaskList(
+                            offset,
+                            limit,
+                            req.ofImageIdList,
+                            req.ofClassificationTypeIdList,
+                            req.statusList,
+                            sortOrder
+                        );
+                    
+                    callback(null, {
+                        totalClassificationTaskCount,
+                        classificationTaskList
+                    })
                 } catch (e) {
                     this.handleError(e, callback);
                 }
